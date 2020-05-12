@@ -103,7 +103,10 @@ func (a *Authenticator) submitCredentials() {
 
 	selector := doc.Find("span[id=errorText]")
 	if len(selector.Nodes) > 0 {
-		log.Fatal(selector.Text())
+		errorMessage := strings.TrimSpace(selector.Text())
+		if errorMessage != "" {
+			log.Fatal(selector.Text())
+		}
 	}
 
 	selector = doc.Find("form[id=loginForm] div input")
