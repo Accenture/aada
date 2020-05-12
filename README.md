@@ -1,6 +1,9 @@
 # AADA
 Accenture Active Directory Authenticator
 
+## Release information
+The current release is 0.1.3, published May 12, 2020.
+
 ## What is this?
 This tool uses your Accenture enterprise id (your.email@accenture.com) to 
 request a SAML token from Active Directory that is exchanged for a set of
