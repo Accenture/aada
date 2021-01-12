@@ -2,7 +2,12 @@
 Accenture Active Directory Authenticator
 
 ## Release information
-The current release is 0.1.3, published May 12, 2020.
+Release 0.1.4, published Jan 12, 2021 - No new features.  New Go compiler
+producing a slightly better binary and refreshed dependencies.  Not a 
+required upgrade.
+
+Initial release 0.1.3, published May 12, 2020.
+
 
 ## What is this?
 This tool uses your Accenture enterprise id (your.email@accenture.com) to 
