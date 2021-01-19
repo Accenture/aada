@@ -14,9 +14,15 @@ func updateProfile(profile string, key string, secret string, token string) erro
 		return err
 	}
 	configPath := path.Join(home, ".aws", "config")
-	configFile, err := ioutil.ReadFile(configPath)
+
+	var configFile []byte
+	configFile, err = ioutil.ReadFile(configPath)
 	if err != nil {
-		return nil
+		if os.IsNotExist(err) {
+			configFile = []byte{} // Empty file
+		} else {
+			return err
+		}
 	}
 
 	f, err := ini.Load(configFile)
@@ -53,9 +59,14 @@ func updateProfile(profile string, key string, secret string, token string) erro
 	}
 
 	credsPath := path.Join(home, ".aws", "credentials")
-	credsFile, err := ioutil.ReadFile(credsPath)
+	var credsFile []byte
+	credsFile, err = ioutil.ReadFile(credsPath)
 	if err != nil {
-		return nil
+		if os.IsNotExist(err) {
+			credsFile = []byte{} // Empty file
+		} else {
+			return err
+		}
 	}
 
 	f, err = ini.Load(credsFile)

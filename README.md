@@ -2,12 +2,18 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 0.1.5, published Jan 19, 2021 - Added the ability for AADA to 
+automatically create config and credentials files if they do not already
+exist.  Additionally, the aada Mac binary has been signed with an Apple
+developer certificate to comply with the new Mac signature requirements.
+The signed binary is in binaries/mac/aada, and has also been zipped into
+binaries/mac/aada.zip for your convenience.
+
 Release 0.1.4, published Jan 12, 2021 - No new features.  New Go compiler
 producing a slightly better binary and refreshed dependencies.  Not a 
 required upgrade.
 
 Initial release 0.1.3, published May 12, 2020.
-
 
 ## What is this?
 This tool uses your Accenture enterprise id (your.email@accenture.com) to 

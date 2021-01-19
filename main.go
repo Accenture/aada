@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("aaca 0.1.4")
+		fmt.Println("aaca 0.1.5")
 		fmt.Println("  This tool authenticates with the Accenture federation service to obtain a SAML token")
 		fmt.Println("  that is exchanged for AWS credentials.  Those credentials are written into the AWS")
 		fmt.Println("  CLI/SDK credentials file for use by the CLI or other applications that use the SDK.")
