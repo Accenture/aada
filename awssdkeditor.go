@@ -13,6 +13,12 @@ func updateProfile(profile string, key string, secret string, token string) erro
 	if err != nil {
 		return err
 	}
+
+	awsPath := path.Join(home, ".aws")
+	if _, err := os.Stat(awsPath); os.IsNotExist(err) {
+		_ = os.Mkdir(awsPath, 0755)
+	}
+
 	configPath := path.Join(home, ".aws", "config")
 
 	var configFile []byte

@@ -2,6 +2,9 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 0.1.6, published Feb 22, 2021 - Added the ability for AADA to
+automatically create the .aws folder if it doesn't already exist.
+
 Release 0.1.5, published Jan 19, 2021 - Added the ability for AADA to 
 automatically create config and credentials files if they do not already
 exist.  Additionally, the aada Mac binary has been signed with an Apple
