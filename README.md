@@ -2,6 +2,14 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 0.1.7, published Feb 26, 2021 - New builds with Go version 1.16.0
+to fix the false-positive hueristic virus detection by Cylance and
+Microsoft Defender (Program.Win32/Wacapew.C!ml).  To be clear, the 
+previous version had no virus in it.  This version is actually throwing
+a false positive for TrojanSpy.MSIL.bgkz with the Jiangmin scanner, but
+Defender is now happy.  I'll try to run these through VirusTotal from
+now on to make sure we don't have any more false positives.
+
 Release 0.1.6, published Feb 22, 2021 - Added the ability for AADA to
 automatically create the .aws folder if it doesn't already exist.
 
