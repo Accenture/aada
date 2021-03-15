@@ -2,6 +2,9 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 0.1.8, published March 15, 2021 - New builds with Go version
+1.16.2.
+
 Release 0.1.7, published Feb 26, 2021 - New builds with Go version 1.16.0
 to fix the false-positive hueristic virus detection by Cylance and
 Microsoft Defender (Program.Win32/Wacapew.C!ml).  To be clear, the 

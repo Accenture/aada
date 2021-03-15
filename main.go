@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("aaca 0.1.7")
+		fmt.Println("aada 0.1.8")
 		fmt.Println("  This tool authenticates with the Accenture federation service to obtain a SAML token")
 		fmt.Println("  that is exchanged for AWS credentials.  Those credentials are written into the AWS")
 		fmt.Println("  CLI/SDK credentials file for use by the CLI or other applications that use the SDK.")
@@ -44,6 +44,13 @@ func main() {
 		un = *username
 		fmt.Println(*username)
 	}
+
+	// Quick check
+	if !strings.Contains(un, "@") {
+		fmt.Println("username should be a full email address, not just an id")
+		os.Exit(0)
+	}
+
 	fmt.Print("Password: ")
 	pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
