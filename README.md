@@ -2,6 +2,12 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 1.0.0-beta, published June 9, 2021 - Complete overhaul and 
+refactor to use OAuth2 as a trusted Azure AD application.  This version
+is 100% different, and not backward compatible with prior versions.  It 
+requires a custom trust on the assumed role, but with that trust, buys
+a completely seamless CLI authentication experience.
+
 Release 0.1.8, published March 15, 2021 - New builds with Go version
 1.16.2.
 
@@ -30,84 +36,50 @@ required upgrade.
 Initial release 0.1.3, published May 12, 2020.
 
 ## What is this?
-This tool uses your Accenture enterprise id (your.email@accenture.com) to 
-request a SAML token from Active Directory that is exchanged for a set of
-AWS credentials to enable both the AWS CLI, as well as applications written
-against the AWS SDK.  This is useful for tools such as Terraform to more 
+This is an AWS SDK credential helper that understands how to authenticate
+you against the Accenture Active Directory, providing a completely seamless
+authentication experience without having to enter your password or security
+token.  This is useful for tools such as Terraform to more 
 easily work within Accenture AWS accounts using federated credentials.
 
 ## How do I install it?
 There is a binaries folder that includes binaries for Linux, Mac, and 
 Windows.  Download the appropriate binary and place it into your path.
-There are no other system requirements.
+There are no other system requirements.  The "aada" binary must be in
+your system path for this to work properly.
 
 ## How do I use it?
-Run aada, enter your enterprise id, password, and current Symantec VIP
-token.
+Start with configuration by running `aada -configure` and aada will setup
+your granted profiles into your AWS configuration.  Each profile will be
+configured to automatically call aada with the correct account and group
+information by any app that uses the AWS SDK.
 
-```
-$ aada
-Username: eric.hill@accenture.com
-Password: <redacted>
-Symantec VIP: 123456
-0/5 preparing
-1/5 getting new session
-2/5 authenticating
-3/5 fetching SAML token
-You may assume one of the following roles:
-   0: arn:aws:iam::012345678901:role/sample-1
-   1: arn:aws:iam::868024899531:role/iesawsna-sandbox
-   2: arn:aws:iam::012345678901:role/sample-2
-Role Number: 1
-4/5 exchanging SAML token for role credentials
-5/5 installing access key ASIA4UGSQ27FTWSETYAV into profile iesawsna-sandbox
-complete - your access expires in 59m59s
-```
-To confirm the credentials are valid, make a call to get-caller-identity.
+To test it out, run trusty get-caller-identity.  On the first run, the 
+aada authentication pop-through should come up, and your CLI call should
+complete successfully.
 ```
 $ aws --profile iesawsna-sandbox sts get-caller-identity
 {
-    "UserId": "AROA4UGSQ27FZ4TPYZFLZ:eric.hill",
+    "UserId": "AROA4UGSQ27FZ4TPYZFLZ:eric.hill@accenture.com",
     "Account": "868024899531",
-    "Arn": "arn:aws:sts::868024899531:assumed-role/iesawsna-sandbox/eric.hill"
+    "Arn": "arn:aws:sts::868024899531:assumed-role/iesawsna-sandbox/eric.hill@accenture.com"
 }
 ```
 
-## What did that just do?
-1. Exchanged your information for a SAML token
-2. Exchanged the SAML token for AWS credentials
-3. Placed those credentials in ~/.aws/credentials under a profile named after the role
-4. Ensured ~/.aws/config contains both an output type and region for that profile
+Once your first authentication completes, the credentials are cached in the
+aws credentials file so that subsequent API calls complete without the 
+authentication pop-through.  Credentials are good for an hour by default,
+and with a completely transparent experience, support for longer assumption
+times is not currently planned.  Please reach out with good use-cases for
+longer assumption time.
 
-## Options and switches
-```
-$ aada -help
-Usage of ./binaries/mac/aada:
-  -d duration
-        duration of assumed credentials (default 1h0m0s)
-  -trace string
-        if specified, traces all activity into this file
-  -u string
-        specify the username
-  -version
-        display version information and exit
-```
-The most useful switch is the -d duration switch.  For the AABG sandbox, you'll
-probably want:
-```
-$ aada -d 8h
-```
+## What did that just do?
+1. Check for cached credentials and just return them if they're still valid
+2. Initiate a cli login session using a websocket to wss.aabg.io
+3. Initiate an OAuth2 authentication against the aada application, with a redirect to aabg.io/authenticator
+4. The lambda on the back-end verifies the OAuth2 token and validates group membership
+5. The lambda then retrieves assumed-role credentials and sends them back down the websocket to the client
+6. The client caches the credentials and returns them to the SDK
 
 ## Who do I blame when things go wrong?
-This was written by Eric Hill.  Don't blame me, just send me a trace and 
-description of what broke and I'll see if I can get it fixed.
-```
-$ aada -trace=tracefile.log
-```
-Your password will NOT be included in the trace file.
-
-## Future work
-I'm waiting on some integration information so I can extend this to use
-OpenID instead of form posts, which should allow a seamless authentication
-experience without entering pesky passwords or VIP tokens every time.  More
-to come.
+This was written by Eric Hill.  Ping me and I'll see what I can do to help.
