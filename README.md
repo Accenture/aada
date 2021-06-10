@@ -81,5 +81,38 @@ longer assumption time.
 5. The lambda then retrieves assumed-role credentials and sends them back down the websocket to the client
 6. The client caches the credentials and returns them to the SDK
 
+## So what's required on the assumed roles?
+
+Any role that aada needs to assume must trust `arn:aws:iam::464079168809:role/aada-trustpoint` to assume it.
+Without this trust, aada cannot give you credentials.  For common shared accounts (the sandbox), this is 
+already done.  For other accounts you might be using, the role may have to be updated.
+
+Further, there is a very specific group format that aada uses.  AWS-\[AWS account number\]-\[Role name here\].  The
+groups match up to the structure that ACP uses internally.  When you request credentials to one of these roles,
+your membership in the Azure AD group is verified before credentials are granted.
+
+## How is aada integrated into the aws config?
+
+Under `~/.aws/config` you'll find profile entries for each role you have access to.
+
+```
+[profile iesawsna-sandbox]
+credential_process = aada AWS-868024899531-iesawsna-sandbox
+```
+
+When you run a command that references this profile (e.g. `aws --profile iesawsna-sandbox sts get-caller-identity`),
+the AWS SDK sees the `credential_process` setting and launches `aada AWS-868024899531-iesawsna-sandbox` to get
+credentials.
+
+Assuming credentials are received, they are placed into `~/.aws/credentials` for cache purposes.
+
+```
+[AWS-868024899531-iesawsna-sandbox]
+aws_access_key_id     = ...
+aws_secret_access_key = ...
+aws_session_token     = ...
+expiration_date       = 2021-06-10T15:45:28Z
+```
+
 ## Who do I blame when things go wrong?
 This was written by Eric Hill.  Ping me and I'll see what I can do to help.
