@@ -1,14 +1,18 @@
-all: aada_mac_x64 aada_win_x64.exe aada_linux_x64
+all: aada_mac_x64 aada_mac_arm64 aada_win_x64.exe aada_linux_x64
 
 release: aada_bundle
 	cp aada ../binaries/mac/aada
 	cp aada.zip ../binaries/mac/aada.zip
+	cp aada_mac_arm64 ../binaries/mac/aada_m1_beta
 	cp aada_win_x64.exe ../binaries/windows/aada.exe
 	cp aada_linux_x64 ../binaries/linux/aada
 
 aada_bundle: aada apple.hcl aada_mac_x64
 	cp aada_mac_x64 aada
 	gon apple.hcl
+
+aada_mac_arm64: *.go go.mod go.sum
+	GOOS=darwin GOARCH=arm64 go build -o aada_mac_arm64 .
 
 aada_mac_x64: *.go go.mod go.sum
 	GOOS=darwin GOARCH=amd64 go build -o aada_mac_x64 .
