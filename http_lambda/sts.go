@@ -27,10 +27,9 @@ func assumeRoleWithWebIdentity(ctx context.Context, upn string, accountId string
 
 	svc := sts.NewFromConfig(awsConfig)
 	aro, err := svc.AssumeRoleWithWebIdentity(ctx, &sts.AssumeRoleWithWebIdentityInput{
-		RoleArn: &arn,
-		RoleSessionName: &upn,
+		RoleArn:          &arn,
+		RoleSessionName:  &upn,
 		WebIdentityToken: &token,
-
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "role assumption failed")

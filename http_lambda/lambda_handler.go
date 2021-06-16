@@ -12,12 +12,12 @@ import (
 
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
 type Request struct {
-	Method  string              `json:"httpMethod"`
-	Path    string              `json:"path"`
-	Body    string              `json:"body"`
-	IsBase64Encoded bool        `json:"isBase64Encoded"`
-	Query   map[string]string   `json:"queryStringParameters"`
-	QuerySS map[string][]string `json:"multiValueQueryStringParameters"`
+	Method          string              `json:"httpMethod"`
+	Path            string              `json:"path"`
+	Body            string              `json:"body"`
+	IsBase64Encoded bool                `json:"isBase64Encoded"`
+	Query           map[string]string   `json:"queryStringParameters"`
+	QuerySS         map[string][]string `json:"multiValueQueryStringParameters"`
 }
 
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
@@ -100,4 +100,3 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	}
 	return buildFailureResponse("malformed request"), nil
 }
-

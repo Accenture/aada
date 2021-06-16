@@ -15,7 +15,7 @@ func validateGroupClaim(accessToken string) error {
 		return errors.Wrap(err, "building group request")
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer " + accessToken)
+	req.Header.Set("Authorization", "Bearer "+accessToken)
 
 	raw, err := httputil.DumpRequest(req, true)
 	if err != nil {

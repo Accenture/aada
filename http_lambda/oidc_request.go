@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"log"
 	"net/http"
@@ -16,7 +15,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		log.Println("ERROR", err.Error())
 		return buildFailureResponse("failed to load state"), nil
 	}
-	creds, err := getAccessTokenFromCode(code)
+	accessToken, err := getAccessTokenFromCode(code)
 	if err != nil {
 		log.Println("ERROR", err.Error())
 		return buildFailureResponse("failed to fetch access token"), nil
@@ -25,18 +24,16 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		Status: "allowed",
 	}
 
-	fmt.Printf("Access Code: %+v\n", creds)
-
 	switch activeState.Mode {
 	case "configuration":
-		profiles, err := getUserProfiles(creds)
+		profiles, err := getUserProfiles(accessToken)
 		if err != nil {
 			log.Println("ERROR", err.Error())
 			return buildFailureResponse("failed to query group membership"), nil
 		}
 		ar.ProfileList = profiles
 	case "access":
-		ok, err := checkUserInsideGroup(creds, activeState.Profile)
+		ok, err := checkUserInsideGroup(accessToken, activeState.Profile)
 		if err != nil {
 			log.Println("ERROR", err.Error())
 			return buildFailureResponse("failed to query group membership"), nil
@@ -48,7 +45,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 				return buildFailureResponse("failed to validate group membership"), nil
 			}
 		}
-		upn := extractUpn(creds.AccessToken)
+		upn := extractUpn(accessToken.AccessToken)
 		accountId, groupName, err := unpackGroupName(activeState.Profile)
 		if err != nil {
 			log.Println("ERROR", err.Error())

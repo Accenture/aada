@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"github.com/fxamacker/cbor"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 
 const alternateQuery = "https://graph.microsoft.com/v1.0/users/e31cf4b7-725f-4ed9-a7f6-371a5235d19a/getMemberGroups"
 const memberQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf?$search=\"displayName:%s\"&$count=true"
-const groupListQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id"
+const groupListQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id,displayName"
 const groupNameQuery = "https://graph.microsoft.com/v1.0/users/%s/memberOf?$select=id,displayName"
 const groupNameQuery2 = "https://graph.microsoft.com/v1.0/groups/%s?$select=displayName"
 const tokenUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb/oauth2/v2.0/token" // Prod
@@ -91,8 +90,6 @@ func getGroupName(creds *Credentials, groupId string) (string, error) {
 	return dn.Name, nil
 }
 
-var masterGroupMap map[string]string
-
 func getUserProfiles(creds *Credentials) (map[string]string, error) {
 	fmt.Println("fetching user profiles")
 
@@ -119,12 +116,12 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 		fmt.Println("RAW " + string(raw))
 
 		attr := struct {
-			Count  int                 `json:"@odata.count"`
+			Count    int    `json:"@odata.count"`
 			NextLink string `json:"@odata.nextLink"`
-			Values []struct{
-				Id string `json:"id"`
+			Values   []struct {
+				Id          string `json:"id"`
 				DisplayName string `json:"displayName"` // This won't come in yet, but it's useful to have
-			}`json:"value"`
+			} `json:"value"`
 		}{}
 		err = json.Unmarshal(raw, &attr)
 		if err != nil {
@@ -132,13 +129,10 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 		}
 
 		for _, value := range attr.Values {
-			name, ok := masterGroupMap[value.Id] // Does this group ID exist in the master list?
-			if ok {
-				// Unpack a reasonable name and map it
-				_, groupName, err := unpackGroupName(name)
-				if err == nil {
-					profiles[groupName] = name
-				}
+			// Unpack a reasonable name and map it
+			_, groupName, err := unpackGroupName(value.DisplayName)
+			if err == nil {
+				profiles[groupName] = value.DisplayName
 			}
 		}
 
@@ -184,16 +178,4 @@ func checkUserInsideGroup(creds *Credentials, groupName string) (bool, error) {
 		return false, errors.Wrap(err, "unable to unmarshal count")
 	}
 	return attr.Count >= 1, nil // They are in the group if the count is 1
-}
-
-//go:embed groups.cbor
-var groupsBinary []byte
-
-func init() {
-	// Load the master group list into memory
-	masterGroupMap = make(map[string]string)
-	err := cbor.Unmarshal(groupsBinary, &masterGroupMap)
-	if err != nil {
-		fmt.Println("REALLY????", err)
-	}
 }
