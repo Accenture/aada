@@ -9,6 +9,23 @@ import (
 	"time"
 )
 
+//func processAWSConsoleRequest(ctx context.Context, code string) (Response, error) {
+//	accessToken, err := getAccessTokenFromCode(code)
+//	if err != nil {
+//		log.Println("ERROR", err.Error())
+//		return buildFailureResponse("failed to fetch access token"), nil
+//	}
+//
+//
+//
+//	return Response{
+//		StatusCode: http.StatusOK,
+//		Headers: map[string]string{
+//
+//		},
+//	}, nil
+//}
+
 func processOIDCRequest(ctx context.Context, state string, code string, idToken string, wsurl string) (Response, error) {
 	activeState, err := loadState(state)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"net/url"
 	"os"
@@ -78,7 +79,28 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 			if !ok {
 				return buildFailureResponse("missing login state"), nil
 			}
+
+			if state == "awsconsole" {
+				return buildAWSConsoleDisplay(code)
+			}
 			return processOIDCRequest(ctx, state, code, "", wsurl)
+		case "/awsconsole":
+			// Initiate a redirect for authentication
+			nonce := uuid.NewString()
+			rqv := url.Values{}
+			rqv.Set("nonce", nonce)
+			rqv.Set("state", "awsconsole")
+			rqv.Set("client_id", "dbf2de86-2e04-4086-bc86-bbc8b47076d5")
+			rqv.Set("response_type", "code")
+			rqv.Set("response_mode", "query")
+			rqv.Set("scope", "openid profile email")
+			rqv.Set("redirect_uri", "https://aabg.io/authenticator")
+			return Response{
+				StatusCode: http.StatusFound,
+				Headers: map[string]string{
+					"Location": authUrl + "?" + rqv.Encode(),
+				},
+			}, nil
 		}
 	case "POST":
 		switch in.Path {

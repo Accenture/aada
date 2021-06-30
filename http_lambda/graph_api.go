@@ -16,9 +16,11 @@ const alternateQuery = "https://graph.microsoft.com/v1.0/users/e31cf4b7-725f-4ed
 const memberQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf?$search=\"displayName:%s\"&$count=true"
 const groupListQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id,displayName"
 const groupNameQuery = "https://graph.microsoft.com/v1.0/users/%s/memberOf?$select=id,displayName"
-const groupNameQuery2 = "https://graph.microsoft.com/v1.0/groups/%s?$select=displayName"
-const tokenUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb/oauth2/v2.0/token" // Prod
-//const tokenUrl = "https://login.microsoftonline.com/f3211d0e-125b-42c3-86db-322b19a65a22/oauth2/v2.0/token" // Staging
+const acpGroupQuery = "https://graph.microsoft.com/v1.0/applications?$filter=startswith(displayName,'113614')&$select=id,displayName"
+const stagingBaseUrl = "https://login.microsoftonline.com/f3211d0e-125b-42c3-86db-322b19a65a22"
+const prodBaseUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb"
+const authUrl = prodBaseUrl + "/oauth2/v2.0/authorize"
+const tokenUrl = prodBaseUrl + "/oauth2/v2.0/token"
 
 func getAccessTokenFromCode(code string) (*Credentials, error) {
 	rqv := url.Values{}
@@ -147,6 +149,75 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 	}
 
 	return profiles, nil
+}
+
+type UserGroupInfo struct {
+	FriendlyName string
+	AccountId string
+	GroupName string
+}
+
+func getUserGroups(creds *Credentials) ([]UserGroupInfo, error) {
+	fmt.Println("fetching user profiles")
+
+	userGroupInfo := make([]UserGroupInfo, 0)
+
+	req, err := http.NewRequest("GET", groupListQuery, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build request")
+	}
+
+	for {
+		req.Header.Add("Authorization", creds.TokenType+" "+creds.AccessToken)
+		req.Header.Add("ConsistencyLevel", "eventual")
+
+		rsp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to execute group query")
+		}
+		raw, err := ioutil.ReadAll(rsp.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to read response body")
+		}
+
+		fmt.Println("RAW " + string(raw))
+
+		attr := struct {
+			Count    int    `json:"@odata.count"`
+			NextLink string `json:"@odata.nextLink"`
+			Values   []struct {
+				Id          string `json:"id"`
+				DisplayName string `json:"displayName"` // This won't come in yet, but it's useful to have
+			} `json:"value"`
+		}{}
+		err = json.Unmarshal(raw, &attr)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to unmarshal groups")
+		}
+
+		for _, value := range attr.Values {
+			// Unpack a reasonable name and map it
+			accountId, groupName, err := unpackGroupName(value.DisplayName)
+			if err == nil {
+			 	userGroupInfo = append(userGroupInfo, UserGroupInfo{
+					FriendlyName: groupName,
+					AccountId:    accountId,
+					GroupName:    value.DisplayName,
+				})
+			}
+		}
+
+		if attr.NextLink == "" {
+			break
+		}
+
+		req, err = http.NewRequest("GET", attr.NextLink, nil)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to build subsequent request")
+		}
+	}
+
+	return userGroupInfo, nil
 }
 
 func checkUserInsideGroup(creds *Credentials, groupName string) (bool, error) {

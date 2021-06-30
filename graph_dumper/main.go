@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/briandowns/spinner"
 	"github.com/fxamacker/cbor"
 	"io/ioutil"
@@ -13,26 +14,34 @@ import (
 )
 
 func main() {
-	query := "https://graph.microsoft.com/v1.0/groups?$filter=startswith(displayName,'AWS-')&$select=id,displayName"
-	dumpGraphInfo(query, "groups.cbor")
-	query = "https://graph.microsoft.com/v1.0/applications?$filter=startswith(displayName,'113614')&$select=id,displayName"
-	dumpGraphInfo(query, "acp_apps.cbor")
+	//query := "https://graph.microsoft.com/v1.0/groups?$filter=startswith(displayName,'AWS-')&$select=id,displayName"
+	//dumpGraphInfo("groups", query, "groups.cbor")
+	query := "https://graph.microsoft.com/v1.0/applications?$filter=startswith(displayName,'113614')&$select=appId,displayName"
+	dumpGraphInfo("applications", query, "acp_apps.cbor")
 }
 
-func dumpGraphInfo(query string, fileName string) {
+type AzureApp struct {
+	AppId string `cbor:"1,keyasint,omitempty"`
+	Name string `cbor:"2,keyasint,omitempty"`
+}
+
+func dumpGraphInfo(stepName string, query string, fileName string) {
 	doer := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	doer.Start()
 
+	if len(os.Args) < 2 {
+		log.Fatal("need a bearer token on the command line")
+	}
 	me := "Bearer " + os.Args[1]
 
-	masterList := make(map[string]string)
+	masterList := make([]AzureApp, 0)
 
 	req, err := http.NewRequest("GET", query, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	for i := 1; i < 10000; i++ {
-		doer.Suffix = " " + strconv.Itoa(i)
+		doer.Suffix = " " + strconv.Itoa(i) + " " + stepName
 
 		req.Header.Set("Authorization", me)
 		rsp, err := http.DefaultClient.Do(req)
@@ -52,7 +61,7 @@ func dumpGraphInfo(query string, fileName string) {
 		pack := struct {
 			NextLink string `json:"@odata.nextLink"`
 			Value []struct{
-				Id string `json:"id"`
+				AppId string `json:"appId"`
 				DisplayName string `json:"displayName"`
 			}`json:"value"`
 		}{}
@@ -63,7 +72,10 @@ func dumpGraphInfo(query string, fileName string) {
 		}
 
 		for _, pv := range pack.Value {
-			masterList[pv.Id] = pv.DisplayName
+			masterList = append(masterList, AzureApp{
+				AppId: pv.AppId,
+				Name:  pv.DisplayName,
+			})
 		}
 
 		if pack.NextLink == "" {
@@ -85,4 +97,6 @@ func dumpGraphInfo(query string, fileName string) {
 	}
 
 	doer.Stop()
+	time.Sleep(100 * time.Millisecond)
+	fmt.Println()
 }
