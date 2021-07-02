@@ -2,8 +2,6 @@ resource "aws_apigatewayv2_api" "wsapi" {
   name                       = "${local.solution_name}-ws-api"
   protocol_type              = "WEBSOCKET"
   route_selection_expression = "$request.body.action"
-  //  route_key     = "$request.body.action"
-  tags = local.tags
 
   depends_on = [aws_api_gateway_account.logging]
 }

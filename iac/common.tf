@@ -5,9 +5,6 @@ resource "random_pet" "solution_name" {
 locals {
   solution_name       = "aada-${random_pet.solution_name.id}"
   camel_solution_name = replace(title("AADA-${random_pet.solution_name.id}"), "-", "")
-  tags = {
-    Author = "Eric Hill"
-  }
 }
 
 data "aws_region" "current" {

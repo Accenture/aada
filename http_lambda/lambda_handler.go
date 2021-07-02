@@ -83,13 +83,16 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 			if state == "awsconsole" {
 				return buildAWSConsoleDisplay(code)
 			}
+			if state == "awsconsole2" {
+				return buildAWSConsoleDisplay2(code)
+			}
 			return processOIDCRequest(ctx, state, code, "", wsurl)
-		case "/awsconsole":
+		case "/awsconsole", "/awsconsole2":
 			// Initiate a redirect for authentication
 			nonce := uuid.NewString()
 			rqv := url.Values{}
 			rqv.Set("nonce", nonce)
-			rqv.Set("state", "awsconsole")
+			rqv.Set("state", in.Path[1:])
 			rqv.Set("client_id", "dbf2de86-2e04-4086-bc86-bbc8b47076d5")
 			rqv.Set("response_type", "code")
 			rqv.Set("response_mode", "query")

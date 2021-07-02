@@ -6,7 +6,6 @@ resource "aws_s3_bucket_object" "ws" {
 
 resource "aws_lambda_function" "ws" {
   function_name = "${local.solution_name}-ws"
-  tags          = local.tags
   role          = aws_iam_role.lambda_execution_role.arn
   runtime       = "go1.x"
   handler       = "ws_lambda"

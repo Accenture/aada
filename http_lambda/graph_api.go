@@ -152,9 +152,10 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 }
 
 type UserGroupInfo struct {
+	Id           string
 	FriendlyName string
-	AccountId string
-	GroupName string
+	AccountId    string
+	GroupName    string
 }
 
 func getUserGroups(creds *Credentials) ([]UserGroupInfo, error) {
@@ -199,7 +200,8 @@ func getUserGroups(creds *Credentials) ([]UserGroupInfo, error) {
 			// Unpack a reasonable name and map it
 			accountId, groupName, err := unpackGroupName(value.DisplayName)
 			if err == nil {
-			 	userGroupInfo = append(userGroupInfo, UserGroupInfo{
+				userGroupInfo = append(userGroupInfo, UserGroupInfo{
+					Id:           value.Id,
 					FriendlyName: groupName,
 					AccountId:    accountId,
 					GroupName:    value.DisplayName,

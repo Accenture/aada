@@ -11,12 +11,11 @@ variable "client_secret" {
 
 resource "aws_lambda_function" "http" {
   function_name = "${local.solution_name}-http"
-  tags          = local.tags
   role          = aws_iam_role.lambda_execution_role.arn
   runtime       = "go1.x"
   handler       = "http_lambda"
   memory_size   = 256
-  timeout       = 10
+  timeout       = 60
   s3_bucket     = aws_s3_bucket.code_bucket.bucket
   s3_key        = aws_s3_bucket_object.http.key
 

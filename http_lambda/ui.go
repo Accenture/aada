@@ -129,9 +129,9 @@ const consolePage = `<!DOCTYPE html>
 `
 
 type ConsoleLink struct {
-	Url string
+	Url         string
 	DisplayName string
-	Account string
+	Account     string
 }
 
 func buildConsolePage(links []ConsoleLink) Response {

@@ -11,7 +11,6 @@ data "aws_iam_policy_document" "lambda_assumption_policy" {
 
 resource "aws_iam_role" "lambda_execution_role" {
   name               = "aada-trustpoint"
-  tags               = local.tags
   assume_role_policy = data.aws_iam_policy_document.lambda_assumption_policy.json
 }
 
