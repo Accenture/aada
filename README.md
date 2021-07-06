@@ -2,6 +2,9 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 1.0.1-beta, published July 6, 2021 - A few minor tweaks and the
+addition of full autoconfiguration, assuming `aada` is in your path.
+
 Release 1.0.0-beta, published June 9, 2021 - Complete overhaul and 
 refactor to use OAuth2 as a trusted Azure AD application.  This version
 is 100% different, and not backward compatible with prior versions.  It 
