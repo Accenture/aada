@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -12,28 +11,42 @@ var favicon string
 
 const successPage = `<!DOCTYPE html>
 <html>
-	<head>
-		<title>AADA Auth Status</title>
-		<style>
-			body {
-				font-family: sans-serif;
-				text-align: center;
-				background-color: #00ff0020;
-			}
-		</style>
-    </head>
-    <body>
-		<p><strong>AADA</strong></p>
-		<svg height='100px' width='100px' fill="#000000" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 100 100" x="0px" y="0px">
-			<title>OK</title>
-			<path d="M51.25,81.75A31.75,31.75,0,1,0,19.5,50,31.79,31.79,0,0,0,51.25,81.75Zm0-56.5A24.75,24.75,0,1,1,26.5,50,24.78,24.78,0,0,1,51.25,25.25Z"></path>
-			<polygon points="66.75 43.35 61.8 38.4 48.13 52.07 42.9 46.84 37.95 51.79 48.13 61.97 66.75 43.35"></polygon>
-		</svg>
-		<p>login successful</p>
-		<script>
-			setTimeout(function() { window.close() }, 5000);
-		</script>
-    </body>
+<head>
+    <title>AADA Auth Status</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #00ff0020;
+        }
+        @keyframes countdown {
+            from { width: 100px; }
+            to   { width: 0; }
+        }
+        #countdown {
+            border-radius: 2px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100px;
+            height: 5px;
+            background-color: black;
+            animation: countdown 5s linear forwards;
+        }
+    </style>
+</head>
+<body>
+    <p><strong>AADA</strong></p>
+    <svg height='100px' width='100px' fill="#000000" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 100 100" x="0px" y="0px">
+        <title>OK</title>
+        <path d="M51.25,81.75A31.75,31.75,0,1,0,19.5,50,31.79,31.79,0,0,0,51.25,81.75Zm0-56.5A24.75,24.75,0,1,1,26.5,50,24.78,24.78,0,0,1,51.25,25.25Z"></path>
+        <polygon points="66.75 43.35 61.8 38.4 48.13 52.07 42.9 46.84 37.95 51.79 48.13 61.97 66.75 43.35"></polygon>
+    </svg>
+    <p>login successful</p>
+    <div id="countdown"></div>
+    <script>
+       setTimeout(function() { window.close() }, 5000);
+    </script>
+</body>
 </html>
 `
 
@@ -105,6 +118,7 @@ const consolePage = `<!DOCTYPE html>
 			}
 			.account {
 				margin-top: 0.25em;
+				margin-bottom: 0.50em;
 				font-size: xx-small;
 			}
 		</style>
@@ -129,16 +143,20 @@ const consolePage = `<!DOCTYPE html>
 `
 
 type ConsoleLink struct {
-	Url         string
-	DisplayName string
-	Account     string
+	Url          string
+	DisplayNames []string
+	Account      string
 }
 
 func buildConsolePage(links []ConsoleLink) Response {
-	linkTemplate := "<a href=\"%s\"><div class=\"name\">%s</div><div class=\"account\">%s</div></a>\n"
 	html := ""
 	for _, link := range links {
-		html = html + fmt.Sprintf(linkTemplate, link.Url, link.DisplayName, link.Account)
+		html = "<a href=\"" + link.Url + "\">"
+		html = html + "<div class=\"account\">" + link.Account + "</a>"
+		for _, displayName := range link.DisplayNames {
+			html = html + "<div class=\"name\">" + displayName + "</div>"
+		}
+		html = html + "</a>\n"
 	}
 
 	return Response{

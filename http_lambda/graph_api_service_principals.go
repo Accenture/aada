@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 )
 
 const servicePrincipalQuery = "https://graph.microsoft.com/v1.0/servicePrincipals?$count=true&$filter=tags%2Fany%28t%3At%20eq%20%27AWS%27%29&$select=id,appId,displayName,tags"
+const servicePrincipalQueryByAccount = "https://graph.microsoft.com/v1.0/servicePrincipals?$count=true&$filter=tags%2Fany%28t%3At%20eq%20%27AWSAccountNumber%3D__ACCOUNT__%27%29&$select=id,appId,displayName,tags"
 const appRoleAssignmentsQuery = "https://graph.microsoft.com/v1.0/servicePrincipals/%s/appRoleAssignedTo"
 
 type AzureAppDef struct {
@@ -25,59 +27,58 @@ type AzureAppRoleAssignment struct {
 }
 
 var azureAppDefCacheLock sync.Mutex
-var azureAppDefCache []AzureAppDef
+var azureAppDefCache map[string][]AzureAppDef
 
-func cacheServicePrincipalGroups(creds *Credentials) error {
-	// No need to cache if we already have a cache
-	if len(azureAppDefCache) > 0 {
-		return nil
+func fetchAssignedGroupForAWSAccount(creds *Credentials, accountNumber string) []AzureAppDef {
+	// Cache check
+	azureAppDefCacheLock.Lock()
+	defs, ok := azureAppDefCache[accountNumber]
+	azureAppDefCacheLock.Unlock()
+	if ok {
+		return defs
 	}
 
-	fmt.Println("DEBUG caching service principal groups")
+	servicePrincipals := make([]AzureAppDef, 0)
+	servicePrincipalsJson, errs := loadGraphResultSet(creds, strings.ReplaceAll(servicePrincipalQueryByAccount, "__ACCOUNT__", accountNumber))
 
-	servicePrincipals, errs := loadGraphResultSet(creds, servicePrincipalQuery)
+	for servicePrincipalJson := range servicePrincipalsJson {
+		servicePrincipal := AzureAppDef{}
+		err := json.Unmarshal(servicePrincipalJson, &servicePrincipal)
+		if err != nil {
+			fmt.Println("ERROR failed to unmarshal service principal")
+			continue
+		}
 
-	// Make workers to get group information concurrently
-	for worker := 0; worker < 20; worker++ {
-		go func() {
-			for servicePrincipalJson := range servicePrincipals {
-				servicePrincipal := AzureAppDef{}
-				err := json.Unmarshal(servicePrincipalJson, &servicePrincipal)
-				if err != nil {
-					fmt.Println("ERROR failed to unmarshal service principal")
-					continue
-				}
+		appRoles, subErr := loadGraphResultSet(creds, fmt.Sprintf(appRoleAssignmentsQuery, servicePrincipal.Id))
 
-				appRoles, subErr := loadGraphResultSet(creds, fmt.Sprintf(appRoleAssignmentsQuery, servicePrincipal.Id))
-
-				// Process the roles concurrently
-				go func() {
-					for appRoleJson := range appRoles {
-						appRoleAssignment := AzureAppRoleAssignment{}
-						err := json.Unmarshal(appRoleJson, &appRoleAssignment)
-						if err != nil {
-							fmt.Println("ERROR failed to unmarshal app role assignment")
-							continue
-						}
-						servicePrincipal.Assignments = append(servicePrincipal.Assignments, appRoleAssignment)
-					}
-
-					azureAppDefCacheLock.Lock()
-					azureAppDefCache = append(azureAppDefCache, servicePrincipal)
-					azureAppDefCacheLock.Unlock()
-				}()
-
-				for err := range subErr {
-					fmt.Println("ERROR", err.Error())
-				}
+		for appRoleJson := range appRoles {
+			appRoleAssignment := AzureAppRoleAssignment{}
+			err := json.Unmarshal(appRoleJson, &appRoleAssignment)
+			if err != nil {
+				fmt.Println("ERROR failed to unmarshal app role assignment")
+				continue
 			}
-		}()
+			servicePrincipal.Assignments = append(servicePrincipal.Assignments, appRoleAssignment)
+		}
+
+		servicePrincipals = append(servicePrincipals, servicePrincipal)
+
+		for err := range subErr {
+			fmt.Println("ERROR", err.Error())
+		}
 	}
 
 	for err := range errs {
 		fmt.Println("ERROR", err.Error())
 	}
 
-	return nil
+	azureAppDefCacheLock.Lock()
+	azureAppDefCache[accountNumber] = servicePrincipals
+	azureAppDefCacheLock.Unlock()
+
+	return servicePrincipals
 }
 
+func init() {
+	azureAppDefCache = make(map[string][]AzureAppDef)
+}

@@ -152,10 +152,10 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 }
 
 type UserGroupInfo struct {
-	Id           string
+	Id           string `json:"id"`
 	FriendlyName string
 	AccountId    string
-	GroupName    string
+	GroupName    string `json:"displayName"`
 }
 
 func getUserGroups(creds *Credentials) ([]UserGroupInfo, error) {
@@ -163,60 +163,26 @@ func getUserGroups(creds *Credentials) ([]UserGroupInfo, error) {
 
 	userGroupInfo := make([]UserGroupInfo, 0)
 
-	req, err := http.NewRequest("GET", groupListQuery, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to build request")
+	groupJsonChannel, errs := loadGraphResultSet(creds, groupListQuery)
+	for groupJson := range groupJsonChannel {
+		ugi := UserGroupInfo{}
+		err := json.Unmarshal(groupJson, &ugi)
+		if err != nil {
+			fmt.Println("ERROR unmarshalling user group info")
+			continue
+		}
+		if !strings.HasPrefix(ugi.GroupName, "AWS") {
+			continue
+		}
+		accountId, groupName, err := unpackGroupName(ugi.GroupName)
+		if err == nil {
+			ugi.AccountId = accountId
+			ugi.FriendlyName = groupName
+			userGroupInfo = append(userGroupInfo, ugi)
+		}
 	}
-
-	for {
-		req.Header.Add("Authorization", creds.TokenType+" "+creds.AccessToken)
-		req.Header.Add("ConsistencyLevel", "eventual")
-
-		rsp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to execute group query")
-		}
-		raw, err := ioutil.ReadAll(rsp.Body)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to read response body")
-		}
-
-		fmt.Println("RAW " + string(raw))
-
-		attr := struct {
-			Count    int    `json:"@odata.count"`
-			NextLink string `json:"@odata.nextLink"`
-			Values   []struct {
-				Id          string `json:"id"`
-				DisplayName string `json:"displayName"` // This won't come in yet, but it's useful to have
-			} `json:"value"`
-		}{}
-		err = json.Unmarshal(raw, &attr)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to unmarshal groups")
-		}
-
-		for _, value := range attr.Values {
-			// Unpack a reasonable name and map it
-			accountId, groupName, err := unpackGroupName(value.DisplayName)
-			if err == nil {
-				userGroupInfo = append(userGroupInfo, UserGroupInfo{
-					Id:           value.Id,
-					FriendlyName: groupName,
-					AccountId:    accountId,
-					GroupName:    value.DisplayName,
-				})
-			}
-		}
-
-		if attr.NextLink == "" {
-			break
-		}
-
-		req, err = http.NewRequest("GET", attr.NextLink, nil)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to build subsequent request")
-		}
+	for err := range errs {
+		fmt.Println("ERROR " + err.Error())
 	}
 
 	return userGroupInfo, nil

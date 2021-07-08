@@ -42,7 +42,7 @@ func buildAWSConsoleDisplay(code string) (Response, error) {
 				if !ok {
 					content = append(content, ConsoleLink{
 						Url:         link,
-						DisplayName: userGroup.FriendlyName,
+						DisplayNames: []string{userGroup.FriendlyName},
 						Account:     userGroup.AccountId,
 					})
 					dedup[link] = nil
@@ -63,30 +63,40 @@ func buildAWSConsoleDisplay2(code string) (Response, error) {
 		return buildFailureResponse("failed to convert code: " + err.Error()), nil
 	}
 
-	err = cacheServicePrincipalGroups(creds)
-	if err != nil {
-		buildFailureResponse("failed to fetch principals: " + err.Error())
-	}
-
-	userGroups, err := getUserGroups(creds)
-	if err != nil {
-		return buildFailureResponse("failed to get user groups: " + err.Error()), nil
-	}
-
 	content := make([]ConsoleLink, 0)
 
+	// Get a list of user groups
+	userGroups, err := getUserGroups(creds)
+	if err != nil {
+		return buildFailureResponse("failed to fetch user groups"), nil
+	}
+
+	groupsByAccount := make(map[string][]UserGroupInfo)
 	for _, userGroup := range userGroups {
-		for _, app := range azureAppDefCache {
-			for _, assignment := range app.Assignments {
-				if assignment.Id == userGroup.Id {
-					link := fmt.Sprintf(acpLoginUrl, app.DisplayName, app.AppId)
-					content = append(content, ConsoleLink{
-						Url: link,
-						DisplayName: userGroup.FriendlyName,
-						Account: userGroup.AccountId,
-					})
+		curr, ok := groupsByAccount[userGroup.AccountId]
+		if ok {
+			curr = append(curr, userGroup)
+			groupsByAccount[userGroup.AccountId] = curr
+		} else {
+			groupsByAccount[userGroup.AccountId] = []UserGroupInfo{userGroup}
+		}
+	}
+
+	for account, groupList := range groupsByAccount {
+		for _, servicePrincipal := range fetchAssignedGroupForAWSAccount(creds, account) {
+			link := ConsoleLink{
+				Account: account,
+				Url: fmt.Sprintf(acpLoginUrl, servicePrincipal.DisplayName, servicePrincipal.AppId),
+			}
+			for _, userGroup := range groupList {
+				for _, assignment := range servicePrincipal.Assignments {
+					if assignment.PrincipalId == userGroup.Id {
+						link.DisplayNames = append(link.DisplayNames, userGroup.FriendlyName)
+					}
 				}
-				break
+			}
+			if len(link.DisplayNames) > 0 {
+				content = append(content, link)
 			}
 		}
 	}
