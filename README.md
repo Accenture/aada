@@ -2,6 +2,9 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 1.0.2, published July 14, 2021 - Non-beta release functionally
+equivalent to 1.0.1-beta.  Now with a pretty usage screen.
+
 Release 1.0.1-beta, published July 6, 2021 - A few minor tweaks and the
 addition of full autoconfiguration, assuming `aada` is in your path.
 

@@ -17,9 +17,29 @@ import (
 	"github.com/pkg/errors"
 )
 
+const UsageInfo = `Version: 1.0.2
+Usage:
+  aada -configure
+
+When configure completes, it will list what Azure AD roles/groups you have and what profiles
+they have been installed into.  You should see something ilke this:
+
+AWS_012345678901_RoleName -> RoleName
+
+You will find a profile in your ~/.aws/config file called "RoleName".  This profile will be 
+configured to use aada to fetch credentials, meaning you can make any standard AWS call like
+you already had credentials.  An easy starting point is:
+
+aws --profile RoleName sts get-caller-identity
+
+If the CLI needs to fetch credentials, a browser window will open to authenticate you.  The
+credentials will be cached in ~/.aws/credentials for subsequent use.
+`
+
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("Usage:\n  aada -configure")
+		fmt.Println(UsageInfo)
+		return
 	}
 
 	err := internal()
