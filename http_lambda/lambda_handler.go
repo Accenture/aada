@@ -26,6 +26,7 @@ type Response struct {
 	StatusCode int               `json:"statusCode"`
 	Body       string            `json:"body"`
 	Headers    map[string]string `json:"headers"`
+	IsBase64Encoded bool `json:"isBase64Encoded"`
 }
 
 /// Interesting query
@@ -69,6 +70,7 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 				Headers: map[string]string{
 					"Content-Type": "image/x-icon",
 				},
+				IsBase64Encoded: true,
 			}, nil
 		case "/authenticator":
 			code, ok := in.Query["code"]
@@ -80,11 +82,8 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 				return buildFailureResponse("missing login state"), nil
 			}
 
-			if state == "awsconsole" {
+			if state == "awsconsole" || state == "awsconsole2" {
 				return buildAWSConsoleDisplay(code)
-			}
-			if state == "awsconsole2" {
-				return buildAWSConsoleDisplay2(code)
 			}
 			return processOIDCRequest(ctx, state, code, "", wsurl)
 		case "/awsconsole", "/awsconsole2":

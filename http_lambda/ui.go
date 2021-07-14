@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -107,19 +108,34 @@ const consolePage = `<!DOCTYPE html>
 				margin-left: 2em;
 				margin-right: 2em;
 				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+				grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
 				grid-gap: 2em;
 			}
 			#accountsList a {
 				padding-top: 0.75em;
 				padding-bottom: 0.75em;
-				background: #fb992720;
-				border: 1px solid darkorange;
+				background: #36688d;
+				border: 1px solid #5486ab;
+				border-radius: 4px;
 			}
 			.account {
 				margin-top: 0.25em;
 				margin-bottom: 0.50em;
-				font-size: xx-small;
+				font-size: small;
+				text-decoration: underline;
+			}
+			a {
+				color: #dddddd;
+				transition-duration: 1s;
+				text-decoration: none;
+			}
+			a:visited {
+				color: #dddddd;
+				transition-duration: 1s;
+			}
+			a:hover {
+				color: white;
+				transition-duration: 1s;
 			}
 		</style>
 	</head>
@@ -136,7 +152,7 @@ const consolePage = `<!DOCTYPE html>
 				<path fill="#0296CC" d="M41.82,0H12.18C5.46,0,0,5.46,0,12.18v29.65C0,48.54,5.46,54,12.18,54H32c0.55,0,1-0.45,1-1s-0.45-1-1-1   H12.18C6.56,52,2,47.44,2,41.82V12.18C2,6.56,6.56,2,12.18,2h29.65C47.44,2,52,6.56,52,12.18V37c0,0.55,0.45,1,1,1s1-0.45,1-1   V12.18C54,5.46,48.54,0,41.82,0z"></path>
 			</g>
 		</svg>
-		<p>Available Accounts</p>
+		<p>Available Accounts and Roles</p>
 		<div id="accountsList">__ACCOUNTS_LIST__</div>
     </body>
 </html>
@@ -149,10 +165,16 @@ type ConsoleLink struct {
 }
 
 func buildConsolePage(links []ConsoleLink) Response {
+	sort.Slice(links, func(i, j int) bool {
+		left := strings.ToLower(links[i].DisplayNames[0])
+		right := strings.ToLower(links[j].DisplayNames[0])
+		return left < right
+	})
+
 	html := ""
 	for _, link := range links {
-		html = "<a href=\"" + link.Url + "\">"
-		html = html + "<div class=\"account\">" + link.Account + "</a>"
+		html = html + "<a href=\"" + link.Url + "\">"
+		html = html + "<div class=\"account\">" + link.Account + "</div>"
 		for _, displayName := range link.DisplayNames {
 			html = html + "<div class=\"name\">" + displayName + "</div>"
 		}

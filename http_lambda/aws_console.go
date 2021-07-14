@@ -3,67 +3,16 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"github.com/fxamacker/cbor"
-	"strings"
+	"sync"
 )
 
-type AzureApp struct {
-	AppId string `cbor:"1,keyasint,omitempty"`
-	Name  string `cbor:"2,keyasint,omitempty"`
-}
-
 const acpLoginUrl = "https://myapps.microsoft.com/signin/%s/%s?tenantId=e0793d39-0939-496d-b129-198edd916feb"
-
-//go:embed acp_apps.cbor
-var AzureAppsData []byte
-var AzureApps []AzureApp
 
 func buildAWSConsoleDisplay(code string) (Response, error) {
 	creds, err := getAccessTokenFromCode(code)
 	if err != nil {
 		return buildFailureResponse("failed to convert code: " + err.Error()), nil
 	}
-
-	userGroups, err := getUserGroups(creds)
-	if err != nil {
-		return buildFailureResponse("failed to query groups: " + err.Error()), nil
-	}
-
-	fmt.Printf("received %d groups\n", len(userGroups))
-
-	content := make([]ConsoleLink, 0)
-	dedup := make(map[string]interface{})
-
-	for _, userGroup := range userGroups {
-		for _, azureApp := range AzureApps {
-			if strings.Contains(azureApp.Name, userGroup.AccountId) {
-				link := fmt.Sprintf(acpLoginUrl, azureApp.Name, azureApp.AppId)
-				_, ok := dedup[link]
-				if !ok {
-					content = append(content, ConsoleLink{
-						Url:         link,
-						DisplayNames: []string{userGroup.FriendlyName},
-						Account:     userGroup.AccountId,
-					})
-					dedup[link] = nil
-				}
-				break
-			}
-		}
-	}
-
-	fmt.Printf("built %d links", len(content))
-
-	return buildConsolePage(content), nil
-}
-
-func buildAWSConsoleDisplay2(code string) (Response, error) {
-	creds, err := getAccessTokenFromCode(code)
-	if err != nil {
-		return buildFailureResponse("failed to convert code: " + err.Error()), nil
-	}
-
-	content := make([]ConsoleLink, 0)
 
 	// Get a list of user groups
 	userGroups, err := getUserGroups(creds)
@@ -82,28 +31,39 @@ func buildAWSConsoleDisplay2(code string) (Response, error) {
 		}
 	}
 
+	workers := sync.WaitGroup{}
+	contentLock := sync.Mutex{}
+	content := make([]ConsoleLink, 0)
+
 	for account, groupList := range groupsByAccount {
-		for _, servicePrincipal := range fetchAssignedGroupForAWSAccount(creds, account) {
-			link := ConsoleLink{
-				Account: account,
-				Url: fmt.Sprintf(acpLoginUrl, servicePrincipal.DisplayName, servicePrincipal.AppId),
-			}
-			for _, userGroup := range groupList {
-				for _, assignment := range servicePrincipal.Assignments {
-					if assignment.PrincipalId == userGroup.Id {
-						link.DisplayNames = append(link.DisplayNames, userGroup.FriendlyName)
+		fmt.Println("DEBUG inside group loop", account)
+		workers.Add(1)
+		account := account
+		groupList := groupList
+		go func() {
+			fmt.Println("DEBUG fetchAssignedGroupForAWSAccount", account)
+			for _, servicePrincipal := range fetchAssignedGroupForAWSAccount(creds, account) {
+				link := ConsoleLink{
+					Account: account,
+					Url: fmt.Sprintf(acpLoginUrl, servicePrincipal.DisplayName, servicePrincipal.AppId),
+				}
+				for _, userGroup := range groupList {
+					for _, assignment := range servicePrincipal.Assignments {
+						if assignment.PrincipalId == userGroup.Id {
+							link.DisplayNames = append(link.DisplayNames, userGroup.FriendlyName)
+						}
 					}
 				}
+				if len(link.DisplayNames) > 0 {
+					contentLock.Lock()
+					content = append(content, link)
+					contentLock.Unlock()
+				}
 			}
-			if len(link.DisplayNames) > 0 {
-				content = append(content, link)
-			}
-		}
+			workers.Done()
+		}()
 	}
+	workers.Wait()
 
 	return buildConsolePage(content), nil
-}
-
-func init() {
-	_ = cbor.Unmarshal(AzureAppsData, &AzureApps)
 }
