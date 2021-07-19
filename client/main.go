@@ -3,21 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"net/url"
-	"os"
-	"strings"
-	"time"
-
-	"github.com/briandowns/spinner"
-	"github.com/fatih/color"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/browser"
 	"github.com/pkg/errors"
+	"log"
+	"net/url"
+	"os"
+	"strings"
 )
 
-const UsageInfo = `Version: 1.0.2
+const UsageInfo = `Version: 1.0.3
 Usage:
   aada -configure
 
@@ -60,19 +56,20 @@ func internal() error {
 	}
 
 	switch strings.ToLower(os.Args[1]) {
-	case "-uidemo":
-		sp := spinner.New(spinner.CharSets[14], 100 * time.Millisecond)
-		sp.Reverse()
-		sp.Color("blue")
-		sp.Suffix = " reticulating splines"
-		sp.Start()
-		time.Sleep(10 * time.Second)
-		sp.Stop()
-		color.Green("✓ reticulating splines")
-		return nil
 	case "-configure":
 		frame.Mode = "configuration"
+	case "-h", "-?", "-help", "--help":
+		fmt.Println(UsageInfo)
+		return nil
 	default:
+		if os.Args[1][0:1] == "-" {
+			fmt.Println("invalid switch:", os.Args[0])
+			fmt.Println(UsageInfo)
+			return nil
+		}
+	}
+
+	if frame.Mode == "access" {
 		err := lookupCache(frame)
 		if err == nil {
 			// We have cached credentials

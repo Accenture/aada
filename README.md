@@ -2,6 +2,10 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 1.0.3, published July 19, 2021 - First non-beta release of Mac
+M1 build.  Better error handling, invalid switch detection, and proper
+usage display for help.
+
 Release 1.0.2, published July 14, 2021 - Non-beta release functionally
 equivalent to 1.0.1-beta.  Now with a pretty usage screen.
 
