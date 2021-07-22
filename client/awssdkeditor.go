@@ -41,6 +41,9 @@ func lookupCache(frame *Frame) error {
 	}
 
 	section := f.Section(frame.Profile)
+	if !section.HasKey("expiration_date") {
+		return errors.New("no expiration date, assuming credentials are stale")
+	}
 	exp, err := section.GetKey("expiration_date")
 	if err != nil {
 		return err

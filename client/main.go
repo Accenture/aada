@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const UsageInfo = `Version: 1.0.3
+const UsageInfo = `Version: 1.0.4
 Usage:
   aada -configure
 

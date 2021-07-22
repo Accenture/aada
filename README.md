@@ -2,6 +2,15 @@
 Accenture Active Directory Authenticator
 
 ## Release information
+Release 1.0.4, published July 22, 2021 - Added simple check for missing
+expiration date in credentials file to force new credentials to be fetched.
+This solves the common issue of stale (older) credentials from prior
+versions of aada or aaca.  Deleting the credentials file accomplishes the
+same results, just with more effort.  Also changed the build mechanism to
+deliver all of the binaries inside platform and architecture specific zip
+files.  The linux arm32 files work on Raspberry Pi systems running against
+the ARM v7 architecture.  The linux arm64 work on ARM v8 or later.
+
 Release 1.0.3, published July 19, 2021 - First non-beta release of Mac
 M1 build.  Better error handling, invalid switch detection, and proper
 usage display for help.
@@ -124,5 +133,12 @@ aws_session_token     = ...
 expiration_date       = 2021-06-10T15:45:28Z
 ```
 
+## Simple troubleshooting
+The most common error message that's been reported is `An error occurred (ExpiredToken) when calling the 
+GetCallerIdentity operation: The security token included in the request is expired`.  The most likely
+cause for this error is there are stale credentials in the `~/.aws/credentials` file from another tool such
+as the pre-1.0 version of aada.  The easiest solution to this is simply delete the `~/.aws/credentials` file
+and re-run your command.
+
 ## Who do I blame when things go wrong?
-This was written by Eric Hill.  Ping me and I'll see what I can do to help.
+This was written by Eric Hill.  Ping me on Teams and I'll see what I can do to help.
