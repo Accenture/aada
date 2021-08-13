@@ -5,6 +5,12 @@ Accenture Active Directory Authenticator
 The latest release can always be downloaded from here:
 https://github.com/AccentureAWS/aada/releases/latest
 
+Release 1.0.5, published August 13, 2021 - Added the ability to deal with
+both `-configure` AND `--configure` since that seems to be the #1 reason 
+people have issues getting aada to work.  Also added another switch to 
+launch the AWS Console interface (https://aabg.io/awsconsole), so in your
+terminal you can type `aada -console` and it will open that url for you.
+
 Release 1.0.4, published July 22, 2021 - Added simple check for missing
 expiration date in credentials file to force new credentials to be fetched.
 This solves the common issue of stale (older) credentials from prior

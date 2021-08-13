@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const UsageInfo = `Version: 1.0.4
+const UsageInfo = `Version: 1.0.5
 Usage:
   aada -configure
 
@@ -56,7 +56,13 @@ func internal() error {
 	}
 
 	switch strings.ToLower(os.Args[1]) {
-	case "-configure":
+	case "-console", "--console":
+		err := browser.OpenURL("https://aabg.io/awsconsole")
+		if err != nil {
+			fmt.Println("failed to open https://aabg.io/awsconsole")
+		}
+		return err
+	case "-configure", "--configure":
 		frame.Mode = "configuration"
 	case "-h", "-?", "-help", "--help":
 		fmt.Println(UsageInfo)
