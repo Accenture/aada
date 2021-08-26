@@ -1,7 +1,7 @@
 resource "aws_apigatewayv2_api" "httpapi" {
   name          = "${local.solution_name}-http-api"
   protocol_type = "HTTP"
-  tags          = {
+  tags = {
     Name = "${local.solution_name}-http-api"
   }
 }
@@ -33,10 +33,6 @@ resource "aws_apigatewayv2_integration" "httpapi_lambda" {
 
 resource "aws_apigatewayv2_deployment" "httpapi" {
   api_id = aws_apigatewayv2_api.httpapi.id
-
-  //  triggers = {
-  //    redeployment = filesha256("../http_lambda/http_lambda.zip")
-  //  }
 
   lifecycle {
     create_before_destroy = true

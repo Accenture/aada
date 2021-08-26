@@ -16,6 +16,7 @@ type Request struct {
 	Method          string              `json:"httpMethod"`
 	Path            string              `json:"path"`
 	Body            string              `json:"body"`
+	Headers         map[string]string   `json:"headers"`
 	IsBase64Encoded bool                `json:"isBase64Encoded"`
 	Query           map[string]string   `json:"queryStringParameters"`
 	QuerySS         map[string][]string `json:"multiValueQueryStringParameters"`
@@ -53,6 +54,17 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 		return Response{
 			StatusCode: 500,
 		}, err
+	}
+
+	host := in.Headers["X-Forwarded-Host"]
+	if len(host) == 0 {
+		host = in.Headers["X-Forwarded-For"]
+	}
+	if shouldThrottle(host) {
+		fmt.Println("THROTTLING", host)
+		return Response{
+			StatusCode: 429,
+		}, nil
 	}
 
 	wsurl, ok := os.LookupEnv("WS_CONN_URL")
