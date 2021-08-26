@@ -71,8 +71,9 @@ token.  This is useful for tools such as Terraform to more
 easily work within Accenture AWS accounts using federated credentials.
 
 ## How do I install it?
-There is a binaries folder that includes binaries for Linux, Mac, and 
-Windows.  Download the appropriate binary and place it into your path.
+https://github.com/AccentureAWS/aada/releases/latest
+
+Download the appropriate binary and place it into your path.
 There are no other system requirements.  The "aada" binary must be in
 your system path for this to work properly.
 
