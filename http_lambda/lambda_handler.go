@@ -47,7 +47,7 @@ const InvalidGroupName = "{\"status\":\"denied\",\"message\":\"invalid group nam
 const RoleAssumptionFailure = "{\"status\":\"denied\",\"message\":\"role assumption failure\"}"
 
 func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
-	fmt.Println(string(raw))
+	fmt.Println("INFO", string(raw))
 	in := Request{}
 	err := json.Unmarshal(raw, &in)
 	if err != nil {
