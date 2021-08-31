@@ -36,12 +36,12 @@ func buildAWSConsoleDisplay(code string) (Response, error) {
 	content := make([]ConsoleLink, 0)
 
 	for account, groupList := range groupsByAccount {
-		fmt.Println("DEBUG inside group loop", account)
+		//fmt.Println("DEBUG inside group loop", account)
 		workers.Add(1)
 		account := account
 		groupList := groupList
 		go func() {
-			fmt.Println("DEBUG fetchAssignedGroupForAWSAccount", account)
+			//fmt.Println("DEBUG fetchAssignedGroupForAWSAccount", account)
 			for _, servicePrincipal := range fetchAssignedGroupForAWSAccount(creds, account) {
 				link := ConsoleLink{
 					Account: account,

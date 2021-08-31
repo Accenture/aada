@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -35,9 +36,9 @@ func loadGraphResultSet(creds *Credentials, query string) (<- chan json.RawMessa
 			if rsp.StatusCode != 200 {
 				/// DEBUGGING ONLY
 				wtf, _ := httputil.DumpRequest(req, true)
-				fmt.Println(string(wtf))
+				fmt.Println("DIAG REQUEST", base64.RawStdEncoding.EncodeToString(wtf))
 				wtf, _ = httputil.DumpResponse(rsp, true)
-				fmt.Println(string(wtf))
+				fmt.Println("DIAG RESPONSE", base64.RawStdEncoding.EncodeToString(wtf))
 
 				errs <- errors.New(rsp.Status)
 				return

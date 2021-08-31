@@ -5,6 +5,10 @@ Accenture Active Directory Authenticator
 The latest release can always be downloaded from here:
 https://github.com/AccentureAWS/aada/releases/latest
 
+Release 1.0.6, published August 31, 2021 - Updated to use Go 1.17 which
+should give a tiny speed boost and cut roughly 10% from the total binary
+size.  No additional features, and upgrading from 1.0.5 is purely optional.
+
 Release 1.0.5, published August 13, 2021 - Added the ability to deal with
 both `-configure` AND `--configure` since that seems to be the #1 reason 
 people have issues getting aada to work.  Also added another switch to 

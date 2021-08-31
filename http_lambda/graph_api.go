@@ -53,7 +53,7 @@ func getAccessTokenFromCode(code string) (*Credentials, error) {
 		return nil, errors.Wrap(err, "failed to unmarshal token body")
 	}
 	if len(bt.AccessToken) == 0 {
-		fmt.Println("token exchange error " + string(rb))
+		fmt.Println("ERROR token exchange", string(rb))
 	}
 	return bt, nil
 }
@@ -93,8 +93,6 @@ func getGroupName(creds *Credentials, groupId string) (string, error) {
 }
 
 func getUserProfiles(creds *Credentials) (map[string]string, error) {
-	fmt.Println("fetching user profiles")
-
 	profiles := make(map[string]string)
 
 	req, err := http.NewRequest("GET", groupListQuery, nil)
@@ -159,8 +157,6 @@ type UserGroupInfo struct {
 }
 
 func getUserGroups(creds *Credentials) ([]UserGroupInfo, error) {
-	fmt.Println("fetching user profiles")
-
 	userGroupInfo := make([]UserGroupInfo, 0)
 
 	groupJsonChannel, errs := loadGraphResultSet(creds, groupListQuery)

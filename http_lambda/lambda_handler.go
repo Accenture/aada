@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
@@ -48,6 +49,13 @@ const RoleAssumptionFailure = "{\"status\":\"denied\",\"message\":\"role assumpt
 
 func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	fmt.Println("INFO", string(raw))
+
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		fmt.Println("TIME", endTime.Sub(startTime).Milliseconds())
+	}()
+
 	in := Request{}
 	err := json.Unmarshal(raw, &in)
 	if err != nil {
@@ -134,5 +142,10 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 			}
 		}
 	}
+
+	// If we got here, the client is doing something strange.  Slurp a few more tokens from the token bucket to slow
+	// down bad actors.
+	throttleCount(host, 5)
+
 	return buildFailureResponse("malformed request"), nil
 }

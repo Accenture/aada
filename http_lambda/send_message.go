@@ -34,7 +34,7 @@ func sendMessageToClient(ctx context.Context, gwurl string, client string, messa
 		return err
 	}
 
-	fmt.Printf("posting to %s\n", rawurl.String())
+	fmt.Printf("EXTERNAL WSS %s\n", rawurl.String())
 
 	req := &http.Request{
 		Method: "POST",
@@ -63,6 +63,6 @@ func sendMessageToClient(ctx context.Context, gwurl string, client string, messa
 	}
 	content, _ := ioutil.ReadAll(rsp.Body)
 	_ = rsp.Body.Close()
-	fmt.Printf("response status %d - %s - %s\n", rsp.StatusCode, rsp.Status, string(content))
+	fmt.Printf("HTTP %d - %s - %s\n", rsp.StatusCode, rsp.Status, string(content))
 	return nil
 }
