@@ -92,6 +92,8 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 				},
 				IsBase64Encoded: true,
 			}, nil
+		case "/downloads":
+			return buildDownloadsPage(), nil
 		case "/authenticator":
 			code, ok := in.Query["code"]
 			if !ok {

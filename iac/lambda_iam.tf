@@ -33,6 +33,12 @@ data "aws_iam_policy_document" "lambda_policy" {
     resources = [aws_dynamodb_table.data.arn]
   }
   statement {
+    sid       = "DownloadClientBinary"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.binaries_bucket.arn}/*"]
+  }
+  statement {
     sid       = "WSSAsyncPush"
     effect    = "Allow"
     actions   = ["execute-api:ManageConnections"] // https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-control-access-iam.html
