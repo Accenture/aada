@@ -53,16 +53,25 @@ func lambdaHandler(ctx context.Context, rawEvent json.RawMessage) (HTTPResponse,
 	event := Event{}
 	_ = json.Unmarshal(rawEvent, &event)
 
-	switch event.Context.EventType {
-	case EventTypeConnect:
-		return HTTPResponse{StatusCode: 200}, nil
-	case EventTypeDisconnect:
-		return HTTPResponse{StatusCode: 200}, nil
-	case EventTypeMessage:
-		return processMessage(ctx, event), nil
-	default:
-		return HTTPResponse{
-			StatusCode: 404,
-		}, nil
+	headers := map[string]string{
+		"Strict-Transport-Security": "max-age=31536000; includeSubdomains; preload", // 1 year
 	}
+
+	response := HTTPResponse{
+		StatusCode: 200,
+		Headers: headers,
+	}
+
+	switch event.Context.EventType {
+	case EventTypeConnect, EventTypeDisconnect:
+		// Do nothing
+	case EventTypeMessage:
+		response = processMessage(ctx, event)
+		response.Headers = headers
+		return response, nil
+	default:
+		response.StatusCode = http.StatusNotFound
+	}
+
+	return response, nil
 }

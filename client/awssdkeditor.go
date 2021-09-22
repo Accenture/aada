@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-ini/ini"
+	"github.com/olekukonko/tablewriter"
 	"io/ioutil"
 	"os"
 	"path"
@@ -123,8 +124,11 @@ func cacheCredentials(frame *Frame) error {
 	return nil
 }
 
-func setupProfiles(profiles map[string]string) error {
-	fmt.Println("setting up profiles")
+func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
+	fmt.Println("Configuring profiles...")
+
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetBorder(false)
 
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -154,18 +158,25 @@ func setupProfiles(profiles map[string]string) error {
 
 	createdRoles := make(map[string]int)
 
+	tw.SetHeader([]string{"Azure AD Application Name", "AWS SDK Profile Name"})
+
 	for profile, role := range profiles {
-		n, ok := createdRoles[profile]
+		sectionName := profile
+		if useLongNameFormat {
+			sectionName = role[4:]
+		}
+
+		n, ok := createdRoles[sectionName]
 		if ok {
 			// We already had a role by this name, so we increment
 			n++
-			createdRoles[profile] = n
-			profile = profile + strconv.Itoa(n)
+			createdRoles[sectionName] = n
+			sectionName = sectionName + strconv.Itoa(n)
 		} else {
-			createdRoles[profile] = 1
+			createdRoles[sectionName] = 1
 		}
 
-		section := f.Section("profile " + profile)
+		section := f.Section("profile " + sectionName)
 		// Clear out the existing keys
 		for _, existingKey := range section.Keys() {
 			section.DeleteKey(existingKey.Name())
@@ -175,8 +186,11 @@ func setupProfiles(profiles map[string]string) error {
 			return err
 		}
 
-		fmt.Println("    ", role, "->", profile)
+		tw.Append([]string{role, sectionName})
 	}
+
+	tw.SetFooter([]string{"Profiles Installed", strconv.Itoa(len(profiles))})
+
 	configData := &bytes.Buffer{}
 	_, err = f.WriteTo(configData)
 	if err != nil {
@@ -187,6 +201,8 @@ func setupProfiles(profiles map[string]string) error {
 	if err != nil {
 		return err
 	}
+
+	tw.Render()
 
 	return nil
 }

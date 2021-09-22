@@ -13,23 +13,34 @@ import (
 	"strings"
 )
 
-const UsageInfo = `Version: 1.0.6
+const UsageInfo = `Version: 1.0.7
 Usage:
-  aada -configure
+  aada -configure [-long-profile-names]
 
 When configure completes, it will list what Azure AD roles/groups you have and what profiles
-they have been installed into.  You should see something ilke this:
+they have been installed into.  You should see something like this:
 
-AWS_012345678901_RoleName -> RoleName
++-------------------------------------------+---------------------------------------+
+|         AZURE AD APPLICATION NAME         |         AWS SDK PROFILE NAME          |
++-------------------------------------------+---------------------------------------+
+| AWS_012345678901_RoleName                 | RoleName                              |
++-------------------------------------------+---------------------------------------+
+|            PROFILES INSTALLED             |                  1                    |
++-------------------------------------------+---------------------------------------+
 
 You will find a profile in your ~/.aws/config file called "RoleName".  This profile will be 
-configured to use aada to fetch credentials, meaning you can make any standard AWS call like
+configured to use AADA to fetch credentials, meaning you can make any standard AWS call like
 you already had credentials.  An easy starting point is:
 
 aws --profile RoleName sts get-caller-identity
 
 If the CLI needs to fetch credentials, a browser window will open to authenticate you.  The
 credentials will be cached in ~/.aws/credentials for subsequent use.
+
+The -long-profile-names switch will use [account number]_[role name] for the profile names.
+This is especially useful when you have multiple accounts, each with an identical role 
+name, such as Admin.  Feel free to change the profile names in the config file as you see 
+fit.  AADA doesn't require any specific profile name to function.
 `
 
 func main() {
@@ -55,23 +66,29 @@ func internal() error {
 		Mode:    "access",
 	}
 
-	switch strings.ToLower(os.Args[1]) {
-	case "-console", "--console":
-		err := browser.OpenURL("https://aabg.io/awsconsole")
-		if err != nil {
-			fmt.Println("failed to open https://aabg.io/awsconsole")
-		}
-		return err
-	case "-configure", "--configure":
-		frame.Mode = "configuration"
-	case "-h", "-?", "-help", "--help":
-		fmt.Println(UsageInfo)
-		return nil
-	default:
-		if os.Args[1][0:1] == "-" {
-			fmt.Println("invalid switch:", os.Args[0])
+	useLongNameFormat := false
+
+	for i := 1; i < len(os.Args); i++ {
+		switch strings.ToLower(os.Args[i]) {
+		case "-console", "--console":
+			err := browser.OpenURL("https://aabg.io/awsconsole")
+			if err != nil {
+				fmt.Println("failed to open https://aabg.io/awsconsole")
+			}
+			return err
+		case "-configure", "--configure":
+			frame.Mode = "configuration"
+		case "-long-profile-names":
+			useLongNameFormat = true
+		case "-h", "-?", "-help", "--help":
 			fmt.Println(UsageInfo)
 			return nil
+		default:
+			if os.Args[i][0:1] == "-" {
+				fmt.Println("invalid switch:", os.Args[0])
+				fmt.Println(UsageInfo)
+				return nil
+			}
 		}
 	}
 
@@ -141,7 +158,7 @@ func internal() error {
 		return nil
 	}
 
-	return setupProfiles(frame.ProfileList)
+	return setupProfiles(useLongNameFormat, frame.ProfileList)
 }
 
 func startWebsocket() (*websocket.Conn, error) {

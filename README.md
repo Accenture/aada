@@ -5,6 +5,13 @@ Accenture Active Directory Authenticator
 The latest release can always be downloaded from here:
 https://github.com/AccentureAWS/aada/releases/latest
 
+Release 1.0.7, published September 22, 2021 - Updated to use Go 1.17.1.
+Added a new -long-profile-names switch, so that profiles with similar
+names (Admin) will actually be named 012345_Admin and 67890_Admin instead
+of Admin and Admin2.  You can obviously change the profile names to your
+liking as well (e.g. ClientName_Admin) since AADA doesn't really care
+what the profile name actually is.
+
 Release 1.0.6, published August 31, 2021 - Updated to use Go 1.17 which
 should give a tiny speed boost and cut roughly 10% from the total binary
 size.  No additional features, and upgrading from 1.0.5 is purely optional.

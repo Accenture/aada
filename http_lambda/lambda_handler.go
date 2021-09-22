@@ -48,6 +48,22 @@ const InvalidGroupName = "{\"status\":\"denied\",\"message\":\"invalid group nam
 const RoleAssumptionFailure = "{\"status\":\"denied\",\"message\":\"role assumption failure\"}"
 
 func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
+	rsp, err := internalLambdaHandler(ctx, raw)
+
+	rsp.Headers["Cache-Control"] = "private, max-age=3600"
+	rsp.Headers["Content-Security-Policy"] = "default-src 'self' aabg.io *.aabg.io; script-src 'self' 'unsafe-eval' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; block-all-mixed-content;"
+	rsp.Headers["Feature-Policy"] = "usb 'none'; geolocation 'none'; microphone 'none'; camera 'none'"
+	rsp.Headers["Referrer-Policy"] = "strict-origin"
+	rsp.Headers["Server"] = "ACN-httpd"
+	rsp.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubdomains; preload" // 1 year
+	rsp.Headers["X-Content-Type-Options"] = "NoSniff"
+	rsp.Headers["X-Frame-Options"] = "SAMEORIGIN"
+	rsp.Headers["X-XSS-Protection"] = "1; mode=block"
+
+	return rsp, err
+}
+
+func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	fmt.Println("INFO", string(raw))
 
 	startTime := time.Now()

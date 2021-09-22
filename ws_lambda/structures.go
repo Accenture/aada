@@ -41,4 +41,5 @@ type HTTPResponse struct {
 	StatusCode      int    `json:"statusCode"`
 	Body            string `json:"body"`
 	IsBase64Encoded bool   `json:"isBase64Encoded"`
+	Headers         map[string]string `json:"headers"`
 }
