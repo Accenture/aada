@@ -5,6 +5,9 @@ Accenture Active Directory Authenticator
 The latest release can always be downloaded from here:
 https://github.com/AccentureAWS/aada/releases/latest
 
+Release 1.0.8, published Jan 5, 2022 - Updated to use Go 1.17.5. No other
+changes.
+
 Release 1.0.7, published September 22, 2021 - Updated to use Go 1.17.1.
 Added a new -long-profile-names switch, so that profiles with similar
 names (Admin) will actually be named 012345_Admin and 67890_Admin instead
@@ -147,7 +150,7 @@ credentials.
 Assuming credentials are received, they are placed into `~/.aws/credentials` for cache purposes.
 
 ```
-[AWS-868024899531-iesawsna-sandbox]
+[AWS_868024899531_iesawsna-sandbox]
 aws_access_key_id     = ...
 aws_secret_access_key = ...
 aws_session_token     = ...
@@ -160,6 +163,27 @@ GetCallerIdentity operation: The security token included in the request is expir
 cause for this error is there are stale credentials in the `~/.aws/credentials` file from another tool such
 as the pre-1.0 version of aada.  The easiest solution to this is simply delete the `~/.aws/credentials` file
 and re-run your command.
+
+## The Serverless Framework
+The Serverless framework is available from [Serverless](https://serverless.com) and is being 
+[promoted by Amazon](https://aws.amazon.com/blogs/apn/deploying-code-faster-with-serverless-framework-and-aws-service-catalog/) 
+as a good starting point to deploy Lambda functions.
+Getting credentials into your AWS account for Serverless to do its thing should be relatively easy, however when using
+AADA, the `serverless deploy` command throws an error "AWS profile profile_name_here doesn't seem to be configured".  After
+troubleshooting with [Kamorudeen Salako](mailto:kamorudeen.salako@accenture.com), we figured out that the Serverless 
+framework doesn't actually load the `~/.aws/config` file like every other SDK.  Instead, it looks for the profile name
+in the `~/.aws/credentials` file and fetches the credentials directly.
+
+What does this mean for you, the bludgeoned user?  In short, AADA automatically fetches credentials and places them into
+the credentials file by the fully qualified profile name.  This means that for our sandbox, the config file might show
+`iesawsna-sandbox`, but the credentials file profile name is stored as `AWS_868024899531_iesawsna-sandbox`.  The important
+bit here is that you will need to use `AWS_868024899531_iesawsna-sandbox` in your `serverless.yml` to call out the profile,
+AND you'll have to run any command using the AWS SDK to get AADA to populate the credentials file with current keys.  Run
+`aws --profile iesawsna-sandbox sts get-caller-identity` to make that happen.  The credentials will be good for an hour.
+
+The real downside is that the Serverless framework won't call the AADA credential helper automatically like every other
+AWS SDK application, so you'll have to manually run that sts command to get fresh credentials every hour.  It's not ideal
+but at least it works.
 
 ## Who do I blame when things go wrong?
 This was written by Eric Hill.  Ping me on Teams and I'll see what I can do to help.

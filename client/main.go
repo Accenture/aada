@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-const UsageInfo = `Version: 1.0.7
+const UsageInfo = `Version: 1.0.8
 Usage:
   aada -configure [-long-profile-names]
 
@@ -70,15 +70,15 @@ func internal() error {
 
 	for i := 1; i < len(os.Args); i++ {
 		switch strings.ToLower(os.Args[i]) {
-		case "-console", "--console":
+		case "console", "-console", "--console":
 			err := browser.OpenURL("https://aabg.io/awsconsole")
 			if err != nil {
 				fmt.Println("failed to open https://aabg.io/awsconsole")
 			}
 			return err
-		case "-configure", "--configure":
+		case "configure", "-configure", "--configure":
 			frame.Mode = "configuration"
-		case "-long-profile-names":
+		case "-long-profile-names", "--long-profile-names":
 			useLongNameFormat = true
 		case "-h", "-?", "-help", "--help":
 			fmt.Println(UsageInfo)

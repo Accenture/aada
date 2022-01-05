@@ -60,6 +60,8 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	rsp.Headers["X-Frame-Options"] = "SAMEORIGIN"
 	rsp.Headers["X-XSS-Protection"] = "1; mode=block"
 
+	fmt.Println("INFO HTTP response", rsp.StatusCode)
+
 	return rsp, err
 }
 
