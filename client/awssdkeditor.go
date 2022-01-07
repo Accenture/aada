@@ -126,6 +126,7 @@ func cacheCredentials(frame *Frame) error {
 
 func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
 	fmt.Println("Configuring profiles...")
+	fmt.Println()
 
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(false)

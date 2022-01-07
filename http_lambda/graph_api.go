@@ -113,7 +113,7 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 			return nil, errors.Wrap(err, "unable to read response body")
 		}
 
-		fmt.Println("RAW " + string(raw))
+		//fmt.Println("RAW " + string(raw))
 
 		attr := struct {
 			Count    int    `json:"@odata.count"`
@@ -129,10 +129,10 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 		}
 
 		for _, value := range attr.Values {
-			// Unpack a reasonable name and map it
-			_, groupName, err := unpackGroupName(value.DisplayName)
+			// See if the name unpacks successfully, and if so, map it for the profiles
+			_, _, err := unpackGroupName(value.DisplayName)
 			if err == nil {
-				profiles[groupName] = value.DisplayName
+				profiles[value.DisplayName] = value.DisplayName
 			}
 		}
 

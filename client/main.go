@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -13,9 +14,11 @@ import (
 	"strings"
 )
 
-const UsageInfo = `Version: 1.0.8
-Usage:
-  aada -configure [-long-profile-names]
+//go:embed version.info
+var version string
+
+const UsageInfo = `
+Usage: aada -configure [-long-profile-names]
 
 When configure completes, it will list what Azure AD roles/groups you have and what profiles
 they have been installed into.  You should see something like this:
@@ -40,11 +43,11 @@ credentials will be cached in ~/.aws/credentials for subsequent use.
 The -long-profile-names switch will use [account number]_[role name] for the profile names.
 This is especially useful when you have multiple accounts, each with an identical role 
 name, such as Admin.  Feel free to change the profile names in the config file as you see 
-fit.  AADA doesn't require any specific profile name to function.
-`
+fit.  AADA doesn't require any specific profile name to function.`
 
 func main() {
 	if len(os.Args) < 2 {
+		fmt.Println("Version:", version)
 		fmt.Println(UsageInfo)
 		return
 	}
@@ -81,11 +84,12 @@ func internal() error {
 		case "-long-profile-names", "--long-profile-names":
 			useLongNameFormat = true
 		case "-h", "-?", "-help", "--help":
+			fmt.Println("Version:", version)
 			fmt.Println(UsageInfo)
 			return nil
 		default:
 			if os.Args[i][0:1] == "-" {
-				fmt.Println("invalid switch:", os.Args[0])
+				fmt.Println("Invalid switch:", os.Args[0])
 				fmt.Println(UsageInfo)
 				return nil
 			}

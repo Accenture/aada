@@ -26,6 +26,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 
 	switch activeState.Mode {
 	case "configuration":
+		//fmt.Println("DEBUG configuration token", accessToken)
 		profiles, err := getUserProfiles(accessToken)
 		if err != nil {
 			fmt.Println("ERROR", err.Error())
@@ -33,6 +34,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		}
 		ar.ProfileList = profiles
 	case "access":
+		//fmt.Println("DEBUG access request for profile", activeState.Profile)
 		ok, err := checkUserInsideGroup(accessToken, activeState.Profile)
 		if err != nil {
 			fmt.Println("ERROR", err.Error())
