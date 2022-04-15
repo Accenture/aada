@@ -109,7 +109,7 @@ complete successfully.
 ```
 $ aws --profile iesawsna-sandbox sts get-caller-identity
 {
-    "UserId": "AROA4UGSQ27FZ4TPYZFLZ:eric.hill@accenture.com",
+    "UserId": "AREXAMPLEKEYIDGOESHERE:eric.hill@accenture.com",
     "Account": "868024899531",
     "Arn": "arn:aws:sts::868024899531:assumed-role/iesawsna-sandbox/eric.hill@accenture.com"
 }
