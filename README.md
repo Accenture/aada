@@ -5,6 +5,12 @@ Accenture Active Directory Authenticator
 The latest release can always be downloaded from here:
 https://github.com/AccentureAWS/aada/releases/latest
 
+Release 1.0.10, published Apr 15, 2022 - Updated to use Go 1.18.1 and
+to use the Mage build system instead of Makefile.  Mage now includes a 
+release to help with uploading releases to GitHub.
+
+Release 1.0.9, internal build, unreleased.
+
 Release 1.0.8, published Jan 5, 2022 - Updated to use Go 1.17.5. No other
 changes.
 

@@ -4,10 +4,12 @@
 package main
 
 import (
+	"archive/zip"
 	"fmt"
 	"github.com/Masterminds/semver"
 	"github.com/magefile/mage/sh"
 	"github.com/magefile/mage/target"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -21,6 +23,16 @@ var allTargets = [][]string{
 	{"aada_linux_x64", "linux", "amd64"},
 	{"aada_linux_arm64", "linux", "arm64"},
 	{"aada_linux_arm32", "linux", "arm"},
+}
+
+var allReleases = [][]string{
+	{"aada_mac_x64.zip", "aada_mac_x64"},
+	{"aada_mac_arm64.zip", "aada_mac_arm64"},
+	{"aada_win_x64.zip", "aada_win_x64.exe"},
+	{"aada_win_arm.zip", "aada_win_arm.exe"},
+	{"aada_linux_x64.zip", "aada_linux_x64"},
+	{"aada_linux_arm64.zip", "aada_linux_arm64"},
+	{"aada_linux_arm32.zip", "aada_linux_arm32"},
 }
 
 // Increment the current patch number.
@@ -74,17 +86,73 @@ func Sign() error {
 	if err != nil {
 		return err
 	}
-	err = appleSign("aada_mac_m1")
+	err = appleSign("aada_mac_arm64")
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+func Release() error {
+	ver, err := loadVersionInfo()
+	if err != nil {
+		return err
+	}
+	err = sh.Run("gh", "release", "create", "v"+ver)
+	if err != nil {
+		return err
+	}
+	for _, t := range allReleases {
+		// For each release, build a zip file if it doesn't already exist
+		ok, err := target.Glob(t[0], t[1])
+		if err != nil {
+			return err
+		}
+		if ok {
+			zipFile(t[1], t[0])
+		}
+
+		fmt.Println("uploading", t[0])
+		err = sh.Run("gh", "release", "upload", "v"+ver, t[0])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func zipFile(source string, dest string) error {
+	fmt.Printf("compressing %s into %s", source, dest)
+
+	in, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	zw := zip.NewWriter(out)
+	fw, err := zw.Create(source)
+	if err != nil {
+		return err
+	}
+	io.Copy(fw, in)
+	zw.Flush()
+	zw.Close()
+
+	fmt.Println(" done")
+	return nil
+}
+
 func buildPlatform(os string, arch string, binary string) error {
 	err := sh.RunWith(map[string]string{"GOOS": os, "GOARCH": arch},
 		"go", "build", "-o", binary)
-	fmt.Println("built")
+	fmt.Print("built")
 	return err
 }
 
