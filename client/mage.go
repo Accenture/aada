@@ -7,12 +7,14 @@ import (
 	"archive/zip"
 	"fmt"
 	"github.com/Masterminds/semver"
+	"github.com/briandowns/spinner"
 	"github.com/magefile/mage/sh"
 	"github.com/magefile/mage/target"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 )
 
 var allTargets = [][]string{
@@ -26,13 +28,13 @@ var allTargets = [][]string{
 }
 
 var allReleases = [][]string{
-	{"aada_mac_x64.zip", "aada_mac_x64"},
-	{"aada_mac_arm64.zip", "aada_mac_arm64"},
-	{"aada_win_x64.zip", "aada_win_x64.exe"},
-	{"aada_win_arm.zip", "aada_win_arm.exe"},
-	{"aada_linux_x64.zip", "aada_linux_x64"},
-	{"aada_linux_arm64.zip", "aada_linux_arm64"},
-	{"aada_linux_arm32.zip", "aada_linux_arm32"},
+	{"aada_mac_x64.zip", "aada_mac_x64", "aada"},
+	{"aada_mac_arm64.zip", "aada_mac_arm64", "aada"},
+	{"aada_win_x64.zip", "aada_win_x64.exe", "aada.exe"},
+	{"aada_win_arm.zip", "aada_win_arm.exe", "aada.exe"},
+	{"aada_linux_x64.zip", "aada_linux_x64", "aada"},
+	{"aada_linux_arm64.zip", "aada_linux_arm64", "aada"},
+	{"aada_linux_arm32.zip", "aada_linux_arm32", "aada"},
 }
 
 // Increment the current patch number.
@@ -53,11 +55,18 @@ func Patch() error {
 
 // Builds all supported platform binaries.
 func Build() error {
+	s := spinner.New(spinner.CharSets[21], 250*time.Millisecond)
+	s.Suffix = "loading version info"
+	s.Start()
+	defer s.Stop()
 	cvs, err := loadVersionInfo()
 	if err != nil {
 		return err
 	}
+	s.Prefix = cvs + "> "
+	s.Stop()
 	fmt.Println("building with version", cvs)
+	s.Start()
 	for _, t := range allTargets {
 		fmt.Print(t[0] + " ")
 		ok, err := target.Glob(t[0], "*.go", "go.mod", "go.sum", "version.info")
@@ -65,10 +74,14 @@ func Build() error {
 			return err
 		}
 		if ok {
+			s.Suffix = "building " + t[1]
 			err = buildPlatform(t[1], t[2], t[0])
 			if err != nil {
 				return err
 			}
+			s.Stop()
+			fmt.Println("built", t[1], "into", t[0])
+			s.Start()
 		} else {
 			fmt.Println("is up to date")
 		}
@@ -109,7 +122,7 @@ func Release() error {
 			return err
 		}
 		if ok {
-			zipFile(t[1], t[0])
+			zipFile(t[1], t[2], t[0])
 		}
 
 		fmt.Println("uploading", t[0])
@@ -121,7 +134,7 @@ func Release() error {
 	return nil
 }
 
-func zipFile(source string, dest string) error {
+func zipFile(source string, name string, dest string) error {
 	fmt.Printf("compressing %s into %s", source, dest)
 
 	in, err := os.Open(source)
@@ -137,7 +150,7 @@ func zipFile(source string, dest string) error {
 	defer out.Close()
 
 	zw := zip.NewWriter(out)
-	fw, err := zw.Create(source)
+	fw, err := zw.Create(name)
 	if err != nil {
 		return err
 	}
@@ -150,10 +163,8 @@ func zipFile(source string, dest string) error {
 }
 
 func buildPlatform(os string, arch string, binary string) error {
-	err := sh.RunWith(map[string]string{"GOOS": os, "GOARCH": arch},
+	return sh.RunWith(map[string]string{"GOOS": os, "GOARCH": arch},
 		"go", "build", "-o", binary)
-	fmt.Print("built")
-	return err
 }
 
 func appleSign(binary string) error {
