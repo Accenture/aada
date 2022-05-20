@@ -41,7 +41,7 @@ func lookupCache(frame *Frame) error {
 		return err
 	}
 
-	section := f.Section(frame.Profile)
+	section := f.Section(frame.Profile + "_cache")
 	if !section.HasKey("expiration_date") {
 		return errors.New("no expiration date, assuming credentials are stale")
 	}
@@ -93,7 +93,7 @@ func cacheCredentials(frame *Frame) error {
 		return err
 	}
 
-	section := f.Section(frame.Profile)
+	section := f.Section(frame.Profile + "_cache")
 	_, err = section.NewKey("aws_access_key_id", frame.AccessKeyId)
 	if err != nil {
 		return err

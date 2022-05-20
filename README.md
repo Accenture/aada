@@ -5,6 +5,18 @@ Accenture Active Directory Authenticator
 The latest release can always be downloaded from here:
 https://github.com/AccentureAWS/aada/releases/latest
 
+Release 1.0.12, unpublished - Changed the profile name in the credentials
+file to include a _cache suffix to try and eliminate an annoying bug
+where an application tries to shortcut the credential process by looking
+directly in the credentials file.  Having found credentials, the app
+tries to use them without checking the expiration date and errors.  You
+either have to manually refresh the creds (sts get-caller-identity for
+example), or delete the credentials so the problematic application will
+just do it the right way and stop shortcutting things.  This change WILL
+LIKELY BREAK the serverless framework since it looks in credentials 
+directly.  As such, this build is unpublished until I figure out a way
+to be compatible with some of these problematic applications.
+
 Release 1.0.11, published May 13, 2022 - Updated to use Go 1.18.2. 
 Corrected Mage build system to use generic aada.exe or aada names 
 inside zip files instead of the interim build executable names.  This
