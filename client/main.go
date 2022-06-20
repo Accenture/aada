@@ -18,6 +18,10 @@ import (
 var version string
 
 const UsageInfo = `
+  __     __    ___    __   
+ / /\   / /\  | | \  / /\  
+/_/--\ /_/--\ |_|_/ /_/--\ 
+
 Usage: aada -configure [-long-profile-names]
 
 When configure completes, it will list what Azure AD roles/groups you have and what profiles

@@ -8,7 +8,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -20,12 +20,12 @@ func lookupCache(frame *Frame) error {
 		return err
 	}
 
-	awsPath := path.Join(home, ".aws")
+	awsPath := filepath.Join(home, ".aws")
 	if _, err := os.Stat(awsPath); os.IsNotExist(err) {
 		_ = os.Mkdir(awsPath, 0755)
 	}
 
-	credsPath := path.Join(home, ".aws", "credentials")
+	credsPath := filepath.Join(home, ".aws", "credentials")
 	var credsFile []byte
 	credsFile, err = ioutil.ReadFile(credsPath)
 	if err != nil {
@@ -72,12 +72,12 @@ func cacheCredentials(frame *Frame) error {
 		return err
 	}
 
-	awsPath := path.Join(home, ".aws")
+	awsPath := filepath.Join(home, ".aws")
 	if _, err := os.Stat(awsPath); os.IsNotExist(err) {
 		_ = os.Mkdir(awsPath, 0755)
 	}
 
-	credsPath := path.Join(home, ".aws", "credentials")
+	credsPath := filepath.Join(home, ".aws", "credentials")
 	var credsFile []byte
 	credsFile, err = ioutil.ReadFile(credsPath)
 	if err != nil {
@@ -136,12 +136,12 @@ func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
 		return err
 	}
 
-	awsPath := path.Join(home, ".aws")
+	awsPath := filepath.Join(home, ".aws")
 	if _, err := os.Stat(awsPath); os.IsNotExist(err) {
 		_ = os.Mkdir(awsPath, 0755)
 	}
 
-	configPath := path.Join(home, ".aws", "config")
+	configPath := filepath.Join(home, ".aws", "config")
 	var configFile []byte
 	configFile, err = ioutil.ReadFile(configPath)
 	if err != nil {

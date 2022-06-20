@@ -172,9 +172,13 @@ func getUserGroups(creds *Credentials) ([]UserGroupInfo, error) {
 		}
 		accountId, groupName, err := unpackGroupName(ugi.GroupName)
 		if err == nil {
-			ugi.AccountId = accountId
-			ugi.FriendlyName = groupName
-			userGroupInfo = append(userGroupInfo, ugi)
+			// Strange case where an account number was Company_space_RoleName which caused a bad request error in
+			// the graph api.
+			if !strings.Contains(accountId, " ") {
+				ugi.AccountId = accountId
+				ugi.FriendlyName = groupName
+				userGroupInfo = append(userGroupInfo, ugi)
+			}
 		}
 	}
 	for err := range errs {
