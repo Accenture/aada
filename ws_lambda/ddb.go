@@ -25,17 +25,18 @@ func (frame *Frame) Persist(ctx context.Context) error {
 	ddb := dynamodb.NewFromConfig(awsConfig)
 
 	// Requests automatically expire an hour into the future
-	expiration := strconv.FormatInt(time.Now().Add(1 * time.Hour).Unix(), 10)
+	expiration := strconv.FormatInt(time.Now().Add(1*time.Hour).Unix(), 10)
 
 	_, err := ddb.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: &tableName,
 		Item: map[string]types.AttributeValue{
-			"state": &types.AttributeValueMemberS{Value: frame.State},
-			"nonce": &types.AttributeValueMemberS{Value: frame.Nonce},
-			"profile": &types.AttributeValueMemberS{Value: frame.Profile},
-			"mode": &types.AttributeValueMemberS{Value: frame.Mode},
-			"connection": &types.AttributeValueMemberS{Value: frame.Connection},
-			"expiration": &types.AttributeValueMemberN{Value: expiration},
+			"state":          &types.AttributeValueMemberS{Value: frame.State},
+			"nonce":          &types.AttributeValueMemberS{Value: frame.Nonce},
+			"profile":        &types.AttributeValueMemberS{Value: frame.Profile},
+			"mode":           &types.AttributeValueMemberS{Value: frame.Mode},
+			"connection":     &types.AttributeValueMemberS{Value: frame.Connection},
+			"expiration":     &types.AttributeValueMemberN{Value: expiration},
+			"client_version": &types.AttributeValueMemberS{Value: frame.ClientVersion},
 		},
 	})
 	return err

@@ -1,4 +1,4 @@
-resource "aws_s3_bucket_object" "http" {
+resource "aws_s3_object" "http" {
   bucket = aws_s3_bucket.code_bucket.bucket
   key    = "binaries/http_lambda.zip"
   source = "../http_lambda/http_lambda.zip"
@@ -17,7 +17,7 @@ resource "aws_lambda_function" "http" {
   memory_size   = 256
   timeout       = 60
   s3_bucket     = aws_s3_bucket.code_bucket.bucket
-  s3_key        = aws_s3_bucket_object.http.key
+  s3_key        = aws_s3_object.http.key
 
   environment {
     variables = {

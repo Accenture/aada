@@ -68,9 +68,10 @@ func internal() error {
 
 	// Build the initial request
 	frame := &Frame{
-		Nonce:   nonce,
-		Profile: os.Args[1],
-		Mode:    "access",
+		Nonce:         nonce,
+		Profile:       os.Args[1],
+		Mode:          "access",
+		ClientVersion: version,
 	}
 
 	useLongNameFormat := false

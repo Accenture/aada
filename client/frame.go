@@ -9,6 +9,7 @@ type Frame struct {
 	Status          string            `json:"status,omitempty"`
 	Mode            string            `json:"mode,omitempty"`
 	Version         int               `json:"version,omitempty"`
+	ClientVersion   string            `json:"client_version,omitempty"`
 	AccessKeyId     string            `json:"access_key_id,omitempty"`
 	SecretAccessKey string            `json:"secret_access_key,omitempty"`
 	SessionToken    string            `json:"session_token,omitempty"`

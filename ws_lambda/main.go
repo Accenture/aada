@@ -14,11 +14,12 @@ func main() {
 }
 
 type Frame struct {
-	Nonce           string `json:"nonce"`
-	Profile         string `json:"profile"`
-	State           string `json:"state"`
-	Mode            string `json:"mode"`
-	Connection      string `json:"-"`
+	Nonce         string `json:"nonce"`
+	Profile       string `json:"profile"`
+	State         string `json:"state"`
+	Mode          string `json:"mode"`
+	ClientVersion string `json:"client_version"`
+	Connection    string `json:"-"`
 }
 
 func processMessage(ctx context.Context, event Event) HTTPResponse {
@@ -43,8 +44,8 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 	}
 
 	return HTTPResponse{
-		StatusCode:      http.StatusOK,
-		Body:            fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
+		StatusCode: http.StatusOK,
+		Body:       fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
 	}
 }
 
@@ -59,7 +60,7 @@ func lambdaHandler(ctx context.Context, rawEvent json.RawMessage) (HTTPResponse,
 
 	response := HTTPResponse{
 		StatusCode: 200,
-		Headers: headers,
+		Headers:    headers,
 	}
 
 	switch event.Context.EventType {
