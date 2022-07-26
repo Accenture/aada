@@ -95,6 +95,7 @@ func Sign() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("signing mac binaries (use package for non-mac binaries)")
 	err = appleSign("aada_mac_x64")
 	if err != nil {
 		return err
@@ -106,15 +107,12 @@ func Sign() error {
 	return nil
 }
 
-func Release() error {
-	ver, err := loadVersionInfo()
+func Package() error {
+	err := Build()
 	if err != nil {
 		return err
 	}
-	err = sh.Run("gh", "release", "create", "v"+ver)
-	if err != nil {
-		return err
-	}
+	fmt.Println("packaging non-mac binaries (use sign for mac binaries)")
 	for _, t := range allReleases {
 		// For each release, build a zip file if it doesn't already exist
 		ok, err := target.Glob(t[0], t[1])
@@ -123,12 +121,6 @@ func Release() error {
 		}
 		if ok {
 			zipFile(t[1], t[2], t[0])
-		}
-
-		fmt.Println("uploading", t[0])
-		err = sh.Run("gh", "release", "upload", "v"+ver, t[0])
-		if err != nil {
-			return err
 		}
 	}
 	return nil

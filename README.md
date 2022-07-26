@@ -3,7 +3,7 @@ Accenture Active Directory Authenticator
 
 ## Release information
 The latest release can always be downloaded from here:
-https://github.com/AccentureAWS/aada/releases/latest
+https://aabg.io/downloads
 
 Release 1.0.13, published July 25, 2022 - Updated to use Go 1.18.4 and
 updated dependencies for AWS SDK and other libraries to latest versions.
