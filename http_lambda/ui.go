@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	_ "embed"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 //go:embed favicon.b64
@@ -84,9 +89,38 @@ func buildConsolePage(links []ConsoleLink) Response {
 var downloadsPage string
 
 func buildDownloadsPage() Response {
+	s3svc := s3.NewFromConfig(awsConfig)
+	presigner := s3.NewPresignClient(s3svc)
+	expiration := time.Now().Add(10 * time.Minute)
+	bucketName, ok := os.LookupEnv("BINARIES_BUCKET")
+	if !ok {
+		bucketName = "invalid-bucket-configuration"
+	}
+
+	getObject := s3.GetObjectInput{
+		Bucket:          aws.String(bucketName),
+		ResponseExpires: &expiration,
+	}
+	binaries := []string{
+		"aada_mac_x64",
+		"aada_mac_arm64",
+		"aada_win_x64",
+		"aada_win_arm",
+		"aada_linux_x64",
+		"aada_linux_arm32",
+		"aada_linux_arm64",
+	}
+	body := downloadsPage
+
+	for _, key := range binaries {
+		getObject.Key = aws.String(key + ".zip")
+		url, _ := presigner.PresignGetObject(context.Background(), &getObject)
+		body = strings.Replace(body, "{"+strings.ToUpper(key)+"}", url.URL, 1)
+	}
+
 	return Response{
 		StatusCode: http.StatusOK,
-		Body:       downloadsPage,
+		Body:       body,
 		Headers: map[string]string{
 			"Content-Type": "text/html",
 		},

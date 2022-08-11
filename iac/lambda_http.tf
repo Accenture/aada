@@ -21,9 +21,10 @@ resource "aws_lambda_function" "http" {
 
   environment {
     variables = {
-      CLIENT_SECRET = var.client_secret
-      TABLE_NAME    = aws_dynamodb_table.data.name
-      WS_CONN_URL   = "https://${aws_apigatewayv2_api.wsapi.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_apigatewayv2_stage.wsapi_stage.name}/@connections"
+      CLIENT_SECRET   = var.client_secret
+      TABLE_NAME      = aws_dynamodb_table.data.name
+      WS_CONN_URL     = "https://${aws_apigatewayv2_api.wsapi.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_apigatewayv2_stage.wsapi_stage.name}/@connections"
+      BINARIES_BUCKET = aws_s3_bucket.binaries_bucket.bucket
     }
   }
 }

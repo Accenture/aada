@@ -32,6 +32,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "binaries_bucket" 
 
 resource "aws_s3_bucket_public_access_block" "binaries_block" {
   bucket              = aws_s3_bucket.binaries_bucket.bucket
-  block_public_acls   = false
-  block_public_policy = false
+  block_public_acls   = true
+  block_public_policy = true
 }
