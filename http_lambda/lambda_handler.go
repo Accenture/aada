@@ -25,10 +25,10 @@ type Request struct {
 
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
 type Response struct {
-	StatusCode int               `json:"statusCode"`
-	Body       string            `json:"body"`
-	Headers    map[string]string `json:"headers"`
-	IsBase64Encoded bool `json:"isBase64Encoded"`
+	StatusCode      int               `json:"statusCode"`
+	Body            string            `json:"body"`
+	Headers         map[string]string `json:"headers"`
+	IsBase64Encoded bool              `json:"isBase64Encoded"`
 }
 
 /// Interesting query
@@ -51,7 +51,7 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	rsp, err := internalLambdaHandler(ctx, raw)
 
 	rsp.Headers["Cache-Control"] = "private, max-age=3600"
-	rsp.Headers["Content-Security-Policy"] = "default-src 'self' aabg.io *.aabg.io; script-src 'self' 'unsafe-eval' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; block-all-mixed-content;"
+	rsp.Headers["Content-Security-Policy"] = "default-src 'self' aabg.io *.aabg.io; script-src 'self' 'unsafe-eval' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.googleapis.com fonts.gstatic.com; block-all-mixed-content;"
 	rsp.Headers["Feature-Policy"] = "usb 'none'; geolocation 'none'; microphone 'none'; camera 'none'"
 	rsp.Headers["Referrer-Policy"] = "strict-origin"
 	rsp.Headers["Server"] = "ACN-httpd"

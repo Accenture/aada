@@ -7,7 +7,9 @@
     <style>
         body {
             font-family: sans-serif;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         #binariesList {
             margin-left: 2em;
@@ -28,6 +30,7 @@
             border: 1px solid #5486ab;
             border-radius: 4px;
             width: 20em;
+            text-align: center;
         }
         a:visited {
             color: #dddddd;
@@ -37,10 +40,18 @@
             color: white;
             transition-duration: 1s;
         }
+        p {
+            margin-left: auto;
+            margin-right: auto;
+            width: 40em;
+        }
+        .centered {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-<p><strong>AADA Downloads</strong></p>
+<p class="centered"><strong>AADA Downloads</strong></p>
 <svg height='100px' width='100px' fill="#19772e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.accenture.com/sketch/ns" viewBox="0 0 12 12" version="1.1" x="0px" y="0px">
     <title>Noun_10x10</title>
     <desc>Created with Sketch.</desc>
@@ -54,8 +65,51 @@
         </g>
     </g>
 </svg>
-<p>Latest Release 1.0.14</p>
-<p>(These links are generated dynamically and expire after 10 minutes.)</p>
+<p class="centered">Instructions</p>
+<p>
+    To use AADA, you'll need to download the appropriate binary (below) to your computer and place
+    it in your system PATH.  This is typically <code>/usr/local/bin</code> on Mac or a tools folder
+    on Windows.  If you can open a terminal or command prompt and type <code>aada</code> and it works,
+    the tool is installed successfully.
+</p>
+<p>
+    Start with configuration by running <code>aada -configure</code> and aada will setup
+    your granted profiles into your AWS configuration.  Each profile will be
+    configured to automatically call aada with the correct account and group
+    information by any app that uses the AWS SDK.
+</p>
+<p>
+    Next, role that aada needs to assume must trust <code>arn:aws:iam::464079168809:role/aada-trustpoint</code> to
+    assume it.  Without this trust, aada cannot give you credentials.  For common shared accounts (like the AABG
+    sandbox), this is already done.  For other accounts you might be using, the role may have to be updated.
+
+    Further, there is a very specific group format that aada uses.  <code>AWS_[AWS account number]_[Role name here]</code>.  The
+    groups match up to the structure that ACP uses internally.  When you request credentials to one of these roles,
+    your membership in the Azure AD group is verified before credentials are granted.
+</p>
+<p>
+    To test it out, run trusty get-caller-identity.  On the first run, the
+    aada authentication pop-through should come up, and your CLI call should
+    complete successfully.
+</p>
+<pre>
+$ aws --profile iesawsna-sandbox sts get-caller-identity
+{
+    "UserId": "AREXAMPLEKEYIDGOESHERE:eric.hill@accenture.com",
+    "Account": "868024899531",
+    "Arn": "arn:aws:sts::868024899531:assumed-role/iesawsna-sandbox/eric.hill@accenture.com"
+}
+</pre>
+<p>
+    Once your first authentication completes, the credentials are cached in the
+    aws credentials file so that subsequent API calls complete without the
+    authentication pop-through.  Credentials are good for an hour by default,
+    and with a completely transparent experience, support for longer assumption
+    times is not currently planned.  Please reach out with good use-cases for
+    longer assumption time.
+</p>
+<p class="centered">Latest release is 1.0.14</p>
+<p class="centered">(These links are generated dynamically and expire after 10 minutes.)</p>
 <div id="binariesList">
     <a href="{AADA_MAC_X64}">aada_mac_x64.zip</a>
     <a href="{AADA_MAC_ARM64}">aada_mac_arm64.zip</a>
