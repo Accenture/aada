@@ -19,6 +19,8 @@ func assumeRole(ctx context.Context, upn string, accountId string, roleName stri
 	if err != nil {
 		return nil, errors.Wrap(err, "role assumption failed")
 	}
+
+	fmt.Printf("AUDIT %s assumed %s in %s with key %s\n", upn, roleName, accountId, *aro.Credentials.AccessKeyId)
 	return aro.Credentials, nil
 }
 
@@ -34,5 +36,6 @@ func assumeRoleWithWebIdentity(ctx context.Context, upn string, accountId string
 	if err != nil {
 		return nil, errors.Wrap(err, "role assumption failed")
 	}
+	fmt.Printf("AUDIT %s assumed %s in %s with key %s using token\n", upn, roleName, accountId, *aro.Credentials.AccessKeyId)
 	return aro.Credentials, nil
 }
