@@ -24,8 +24,24 @@ resource "aws_cloudwatch_log_metric_filter" "throttle_filter" {
   log_group_name = aws_cloudwatch_log_group.lambda_http.name
 
   metric_transformation {
-    name      = "ThrottleCount"
-    namespace = local.camel_solution_name
-    value     = "1"
+    name          = "ThrottleCount"
+    namespace     = local.camel_solution_name
+    value         = "1"
+    default_value = "0"
+    unit          = "Count"
+  }
+}
+
+resource "aws_cloudwatch_log_metric_filter" "audit_filter" {
+  name           = "${local.solution_name}-audit-filter"
+  pattern        = "AUDIT"
+  log_group_name = aws_cloudwatch_log_group.lambda_http.name
+
+  metric_transformation {
+    name          = "AuditCount"
+    namespace     = local.camel_solution_name
+    value         = "1"
+    default_value = "0"
+    unit          = "Count"
   }
 }
