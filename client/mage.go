@@ -89,6 +89,22 @@ func Build() error {
 	return nil
 }
 
+func Release() error {
+	err := Patch()
+	if err != nil {
+		return err
+	}
+	err = Package()
+	if err != nil {
+		return err
+	}
+	err = Sign()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Ensures the build is current and signs Mac binaries via Apple.
 func Sign() error {
 	err := Build()

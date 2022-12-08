@@ -15,7 +15,7 @@ resource "aws_lambda_function" "http" {
   runtime       = "go1.x"
   handler       = "http_lambda"
   memory_size   = 256
-  timeout       = 60
+  timeout       = 20 // If it doesn't happen in 20 seconds, it's not going to happen
   s3_bucket     = aws_s3_bucket.code_bucket.bucket
   s3_key        = aws_s3_object.http.key
 

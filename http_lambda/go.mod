@@ -3,13 +3,13 @@ module github.com/AccentureAWS/chitchat/http_lambda
 go 1.16
 
 require (
-	github.com/aws/aws-lambda-go v1.34.1
-	github.com/aws/aws-sdk-go-v2 v1.16.10
-	github.com/aws/aws-sdk-go-v2/config v1.16.0
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.10
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.12
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.4
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.12
+	github.com/aws/aws-lambda-go v1.36.0
+	github.com/aws/aws-sdk-go-v2 v1.17.2
+	github.com/aws/aws-sdk-go-v2/config v1.18.4
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.7
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.17.8
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.5
+	github.com/aws/aws-sdk-go-v2/service/sts v1.17.6
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/juju/ratelimit v1.0.2
