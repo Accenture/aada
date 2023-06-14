@@ -27,8 +27,11 @@ func getAccessTokenFromCode(code string) (*Credentials, error) {
 	rqv.Set("code", code)
 	rqv.Set("redirect_uri", "https://aabg.io/authenticator")
 	rqv.Set("grant_type", "authorization_code")
-	rqv.Set("client_id", "dbf2de86-2e04-4086-bc86-bbc8b47076d5")
+
 	rqv.Set("scope", "openid email")
+
+	clientId, _ := os.LookupEnv("CLIENT_ID")
+	rqv.Set("client_id", clientId)
 
 	clientSecret, _ := os.LookupEnv("CLIENT_SECRET")
 	rqv.Set("client_secret", clientSecret)

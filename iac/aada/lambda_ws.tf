@@ -5,8 +5,8 @@ resource "aws_s3_object" "ws" {
 }
 
 resource "aws_lambda_function" "ws" {
-  function_name = "${local.solution_name}-ws"
-  role          = aws_iam_role.lambda_execution_role.arn
+  function_name = "${var.solution_name}-ws"
+  role          = var.lambda_execution_role_arn
   runtime       = "go1.x"
   handler       = "ws_lambda"
   memory_size   = 256
@@ -22,7 +22,7 @@ resource "aws_lambda_function" "ws" {
 }
 
 resource "aws_lambda_permission" "invoke_ws" {
-  statement_id_prefix = "${local.solution_name}-"
+  statement_id_prefix = "${var.solution_name}-"
   action              = "lambda:InvokeFunction"
   function_name       = aws_lambda_function.ws.function_name
   principal           = "apigateway.amazonaws.com"

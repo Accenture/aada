@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "data" {
-  name         = "${local.solution_name}-data"
+  name         = "${var.solution_name}-data"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "state"
   ttl {

@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "code_bucket" {
-  bucket = "${local.solution_name}-code-bucket"
+  bucket = "${var.solution_name}-${data.aws_region.current.name}-code-bucket"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "code_bucket" {
@@ -18,7 +18,7 @@ resource "aws_s3_bucket_public_access_block" "code_bucket" {
 }
 
 resource "aws_s3_bucket" "binaries_bucket" {
-  bucket = "${local.solution_name}-binaries"
+  bucket = "${var.solution_name}-${data.aws_region.current.name}-binaries"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "binaries_bucket" {

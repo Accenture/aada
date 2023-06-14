@@ -1,8 +1,8 @@
 resource "aws_apigatewayv2_api" "httpapi" {
-  name          = "${local.solution_name}-http-api"
+  name          = "${var.solution_name}-http-api"
   protocol_type = "HTTP"
   tags = {
-    Name = "${local.solution_name}-http-api"
+    Name = "${var.solution_name}-http-api"
   }
 }
 
@@ -38,6 +38,11 @@ resource "aws_apigatewayv2_deployment" "httpapi" {
     create_before_destroy = true
   }
 }
+
+#resource "aws_apigatewayv2_domain_name" "httpdomain" {
+#  domain_name = "aabg.io"
+#
+#}
 
 output "http_endpoint" {
   value = aws_apigatewayv2_stage.httpapi_prod_stage.invoke_url

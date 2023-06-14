@@ -4,14 +4,9 @@ resource "aws_s3_object" "http" {
   source = "../http_lambda/http_lambda.zip"
 }
 
-variable "client_secret" {
-  type      = string
-  sensitive = true
-}
-
 resource "aws_lambda_function" "http" {
-  function_name = "${local.solution_name}-http"
-  role          = aws_iam_role.lambda_execution_role.arn
+  function_name = "${var.solution_name}-http"
+  role          = var.lambda_execution_role_arn
   runtime       = "go1.x"
   handler       = "http_lambda"
   memory_size   = 256
@@ -21,6 +16,7 @@ resource "aws_lambda_function" "http" {
 
   environment {
     variables = {
+      CLIENT_ID       = var.client_id
       CLIENT_SECRET   = var.client_secret
       TABLE_NAME      = aws_dynamodb_table.data.name
       WS_CONN_URL     = "https://${aws_apigatewayv2_api.wsapi.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_apigatewayv2_stage.wsapi_stage.name}/@connections"
@@ -30,7 +26,7 @@ resource "aws_lambda_function" "http" {
 }
 
 resource "aws_lambda_permission" "invoke_http_apigw" {
-  statement_id_prefix = "${local.solution_name}-"
+  statement_id_prefix = "${var.solution_name}-"
   action              = "lambda:InvokeFunction"
   function_name       = aws_lambda_function.http.function_name
   principal           = "apigateway.amazonaws.com"

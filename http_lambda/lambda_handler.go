@@ -132,7 +132,8 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 			rqv := url.Values{}
 			rqv.Set("nonce", nonce)
 			rqv.Set("state", in.Path[1:])
-			rqv.Set("client_id", "dbf2de86-2e04-4086-bc86-bbc8b47076d5")
+			clientId, _ := os.LookupEnv("CLIENT_ID")
+			rqv.Set("client_id", clientId)
 			rqv.Set("response_type", "code")
 			rqv.Set("response_mode", "query")
 			rqv.Set("scope", "openid profile email")
@@ -142,6 +143,10 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 				Headers: map[string]string{
 					"Location": authUrl + "?" + rqv.Encode(),
 				},
+			}, nil
+		case "/status":
+			return Response{
+				StatusCode: http.StatusOK,
 			}, nil
 		}
 	case "POST":

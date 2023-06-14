@@ -30,19 +30,19 @@ data "aws_iam_policy_document" "lambda_policy" {
       "dynamodb:Scan",
       "dynamodb:UpdateItem"
     ]
-    resources = [aws_dynamodb_table.data.arn]
+    resources = [module.aada_us_east_1.dynamodb_table_arn]
   }
   statement {
     sid       = "DownloadClientBinary"
     effect    = "Allow"
     actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.binaries_bucket.arn}/*"]
+    resources = ["${module.aada_us_east_1.s3_bucket_arn}/*"]
   }
   statement {
     sid       = "WSSAsyncPush"
     effect    = "Allow"
     actions   = ["execute-api:ManageConnections"] // https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-control-access-iam.html
-    resources = ["${aws_apigatewayv2_api.wsapi.execution_arn}/${aws_apigatewayv2_stage.wsapi_stage.name}/POST/@connections/*"]
+    resources = [module.aada_us_east_1.ws_api_url]
   }
   statement {
     sid       = "CrossAccountAssumptions"
