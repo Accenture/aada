@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -47,6 +48,8 @@ const NotAllowed = "{\"status\":\"denied\",\"message\":\"not allowed\"}"
 const InvalidGroupName = "{\"status\":\"denied\",\"message\":\"invalid group name\"}"
 const RoleAssumptionFailure = "{\"status\":\"denied\",\"message\":\"role assumption failure\"}"
 
+var lastResult int
+
 func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	rsp, err := internalLambdaHandler(ctx, raw)
 
@@ -61,6 +64,8 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	rsp.Headers["X-XSS-Protection"] = "1; mode=block"
 
 	fmt.Println("INFO HTTP response", rsp.StatusCode)
+
+	lastResult = rsp.StatusCode
 
 	return rsp, err
 }
@@ -147,6 +152,9 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 		case "/status":
 			return Response{
 				StatusCode: http.StatusOK,
+				Headers: map[string]string{
+					"x-last-result": strconv.Itoa(lastResult),
+				},
 			}, nil
 		}
 	case "POST":

@@ -1,14 +1,16 @@
 resource "aws_s3_object" "ws" {
-  bucket = aws_s3_bucket.code_bucket.bucket
-  key    = "binaries/ws_lambda.zip"
-  source = "../ws_lambda/ws_lambda.zip"
+  bucket      = aws_s3_bucket.code_bucket.bucket
+  key         = "binaries/ws_lambda.zip"
+  source      = "../ws_lambda/ws_lambda.zip"
+  source_hash = filemd5("../ws_lambda/ws_lambda.zip")
 }
 
 resource "aws_lambda_function" "ws" {
   function_name = "${var.solution_name}-ws"
   role          = var.lambda_execution_role_arn
-  runtime       = "go1.x"
-  handler       = "ws_lambda"
+  runtime       = "provided.al2"
+  architectures = ["arm64"]
+  handler       = "bootstrap"
   memory_size   = 256
   timeout       = 10
   s3_bucket     = aws_s3_bucket.code_bucket.bucket
@@ -16,7 +18,8 @@ resource "aws_lambda_function" "ws" {
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.data.name
+      TABLE_NAME  = aws_dynamodb_table.data.name
+      KMS_KEY_ARN = var.kms_key_arn
     }
   }
 }
@@ -28,3 +31,4 @@ resource "aws_lambda_permission" "invoke_ws" {
   principal           = "apigateway.amazonaws.com"
   source_arn          = "${aws_apigatewayv2_api.wsapi.execution_arn}/*"
 }
+

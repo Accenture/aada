@@ -19,3 +19,7 @@ variable "camel_solution_name" {
 variable "lambda_execution_role_arn" {
   type = string
 }
+
+variable "kms_key_arn" {
+  type = string
+}

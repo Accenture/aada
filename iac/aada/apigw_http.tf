@@ -34,15 +34,24 @@ resource "aws_apigatewayv2_integration" "httpapi_lambda" {
 resource "aws_apigatewayv2_deployment" "httpapi" {
   api_id = aws_apigatewayv2_api.httpapi.id
 
+  triggers = {
+    redeployment = filesha256("../http_lambda/http_lambda.zip")
+  }
+
   lifecycle {
     create_before_destroy = true
   }
 }
 
-#resource "aws_apigatewayv2_domain_name" "httpdomain" {
-#  domain_name = "aabg.io"
-#
-#}
+resource "aws_apigatewayv2_domain_name" "httpdomain" {
+  domain_name = "aabg.io"
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate.http_cert.arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
 
 output "http_endpoint" {
   value = aws_apigatewayv2_stage.httpapi_prod_stage.invoke_url

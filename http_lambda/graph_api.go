@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -208,7 +209,7 @@ func checkUserInsideGroup(creds *Credentials, groupName string) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "failed to execute group query")
 	}
-	raw, err := ioutil.ReadAll(rsp.Body)
+	raw, err := io.ReadAll(rsp.Body)
 	if err != nil {
 		return false, errors.Wrap(err, "unable to read response body")
 	}

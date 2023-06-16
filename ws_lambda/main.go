@@ -7,9 +7,18 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
 	"net/http"
+	"os"
 )
 
+var kmsKeyArn string
+
 func main() {
+	s, ok := os.LookupEnv("KMS_KEY_ARN")
+	if !ok {
+		fmt.Println("KMS_KEY_ARN was not provided")
+	}
+	kmsKeyArn = s
+
 	lambda.Start(lambdaHandler)
 }
 
@@ -43,9 +52,40 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 		return HTTPResponse{StatusCode: http.StatusInternalServerError}
 	}
 
+	// Package up the information the caller needs to carry into a signed structure
+	info := &Information{
+		ConnectionId: event.Context.ConnectionId,
+		ProfileName:  frame.Profile,
+		ConnectMode:         ModeUnknown,
+		ClientVersion: frame.ClientVersion,
+	}
+	switch frame.Mode {
+	case "access":
+		info.ConnectMode = ModeAccess
+	case "configuration":
+		info.ConnectMode = ModeConfiguration
+	}
+	signed, err := info.Sign(ctx)
+	if err != nil {
+		fmt.Println("error signing connection id", err.Error())
+		// Fast return the old method
+		return HTTPResponse{
+			StatusCode: http.StatusOK,
+			Body:       fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
+		}
+	}
+	signature, err := signed.EncodeToString()
+	if err != nil {
+		fmt.Println("error signing connection id", err.Error())
+		// Fast return the old method
+		return HTTPResponse{
+			StatusCode: http.StatusOK,
+			Body:       fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
+		}
+	}
 	return HTTPResponse{
 		StatusCode: http.StatusOK,
-		Body:       fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
+		Body:       fmt.Sprintf("{\"state\":\"%s\",\"context\":\"%s\"}", frame.State, signature),
 	}
 }
 

@@ -1,7 +1,7 @@
 all: ws_lambda.zip
 
-ws_lambda.zip: ws_lambda
-	zip ws_lambda.zip ws_lambda
+ws_lambda.zip: bootstrap
+	zip ws_lambda.zip bootstrap
 
-ws_lambda: *.go go.mod go.sum
-	GOOS=linux GOARCH=amd64 go build -o ws_lambda .
+bootstrap: *.go go.mod go.sum
+	GOOS=linux GOARCH=arm64 go build -o bootstrap -tags lambda.norpc .

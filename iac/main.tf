@@ -40,6 +40,16 @@ provider "aws" {
   }
 }
 
+resource "aws_kms_key" "signatory" {
+  provider                 = aws.aws_us_east_1
+  description              = "AADA Signatory"
+  key_usage                = "SIGN_VERIFY"
+  customer_master_key_spec = "ECC_NIST_P256"
+  multi_region             = true
+  deletion_window_in_days  = 10
+}
+
+
 module "aada_us_east_1" {
   source                    = "./aada"
   solution_name             = local.solution_name
@@ -47,6 +57,7 @@ module "aada_us_east_1" {
   client_id                 = var.client_id
   client_secret             = var.client_secret
   lambda_execution_role_arn = aws_iam_role.lambda_execution_role.arn
+  kms_key_arn               = aws_kms_key.signatory.arn
 
   providers = {
     aws = aws.aws_us_east_1
@@ -56,6 +67,23 @@ module "aada_us_east_1" {
 provider "aws" {
   region = "us-west-1"
   alias  = "aws_us_west_1"
+
+  default_tags {
+    tags = {
+      Author      = "Eric Hill"
+      Automation  = "Terraform"
+      Group       = "AABG"
+      Purpose     = "AADA"
+      Environment = "Production"
+    }
+  }
+}
+
+resource "aws_kms_replica_key" "signatory" {
+  provider                = aws.aws_us_west_1
+  primary_key_arn         = aws_kms_key.signatory.arn
+  description             = aws_kms_key.signatory.description
+  deletion_window_in_days = aws_kms_key.signatory.deletion_window_in_days
 }
 
 module "aada_us_west_1" {
@@ -65,6 +93,7 @@ module "aada_us_west_1" {
   client_id                 = var.client_id
   client_secret             = var.client_secret
   lambda_execution_role_arn = aws_iam_role.lambda_execution_role.arn
+  kms_key_arn               = aws_kms_replica_key.signatory.arn
 
   providers = {
     aws = aws.aws_us_west_1

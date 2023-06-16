@@ -10,11 +10,44 @@ import (
 )
 
 func processOIDCRequest(ctx context.Context, state string, code string, idToken string, wsurl string) (Response, error) {
-	activeState, err := loadState(state)
-	if err != nil {
-		fmt.Println("ERROR", err.Error())
-		return buildFailureResponse("failed to load state"), nil
+	var activeState *ActiveState
+
+	// Alternate path to load state from packed state vs DynamoDB loaded state
+	if len(state) > 40 {
+		si := &SignedInformation{}
+		err := si.DecodeFromString(state)
+		if err != nil {
+			fmt.Println("ERROR", err.Error())
+			return buildFailureResponse("failed to unpack state"), nil
+		}
+		err = si.Validate(ctx)
+		if err != nil {
+			fmt.Println("ERROR", err.Error())
+			return buildFailureResponse("failed to validate state"), nil
+		}
+
+		// At this point, passed in state is valid and verified, proceed to trust it
+		activeState = &ActiveState{
+			Profile:    si.Information.ProfileName,
+			Connection: si.Information.ConnectionId,
+		}
+		switch si.Information.ConnectMode {
+		case ModeAccess:
+			activeState.Mode = "access"
+		case ModeConfiguration:
+			activeState.Mode = "configuration"
+		}
+	} else {
+		// Load from DynamoDB just like we always have.  This will go away after the new
+		// state mechanism is proven.
+		loadedState, err := loadState(state)
+		if err != nil {
+			fmt.Println("ERROR", err.Error())
+			return buildFailureResponse("failed to load state"), nil
+		}
+		activeState = loadedState
 	}
+
 	accessToken, err := getAccessTokenFromCode(code)
 	if err != nil {
 		fmt.Println("ERROR", err.Error())

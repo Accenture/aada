@@ -75,6 +75,16 @@ resource "aws_apigatewayv2_deployment" "wsapi" {
   }
 }
 
+resource "aws_apigatewayv2_domain_name" "wsdomain" {
+  domain_name = "wss.aabg.io"
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate.http_cert.arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+
 output "ws_endpoint" {
   value = aws_apigatewayv2_stage.wsapi_stage.invoke_url
 }

@@ -137,7 +137,7 @@ func internal() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to unpack frame")
 	}
-	err = launchLogin(nonce, frame.State, frame.Mode == "configuration")
+	err = launchLogin(nonce, frame.Context, frame.Mode == "configuration")
 	if err != nil {
 		return errors.Wrap(err, "failed to launch browser login")
 	}
@@ -178,7 +178,6 @@ func startWebsocket() (*websocket.Conn, error) {
 	return wss, nil
 }
 
-//const authUrl = "https://login.microsoftonline.com/f3211d0e-125b-42c3-86db-322b19a65a22/oauth2/v2.0/authorize"
 const authUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb/oauth2/v2.0/authorize"
 
 func launchLogin(nonce string, state string, requireConsent bool) error {

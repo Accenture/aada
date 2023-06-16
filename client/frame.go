@@ -6,6 +6,7 @@ type Frame struct {
 	Nonce           string            `json:"nonce,omitempty"`
 	Profile         string            `json:"profile,omitempty"`
 	State           string            `json:"state,omitempty"`
+	Context         string            `json:"context,omitempty"`
 	Status          string            `json:"status,omitempty"`
 	Mode            string            `json:"mode,omitempty"`
 	Version         int               `json:"version,omitempty"`
