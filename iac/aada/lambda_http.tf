@@ -6,15 +6,16 @@ resource "aws_s3_object" "http" {
 }
 
 resource "aws_lambda_function" "http" {
-  function_name = "${var.solution_name}-http"
-  role          = var.lambda_execution_role_arn
-  runtime       = "provided.al2"
-  architectures = ["arm64"]
-  handler       = "bootstrap"
-  memory_size   = 256
-  timeout       = 20 // If it doesn't happen in 20 seconds, it's not going to happen
-  s3_bucket     = aws_s3_bucket.code_bucket.bucket
-  s3_key        = aws_s3_object.http.key
+  function_name    = "${var.solution_name}-http"
+  role             = var.lambda_execution_role_arn
+  runtime          = "provided.al2"
+  architectures    = ["arm64"]
+  handler          = "bootstrap"
+  memory_size      = 256
+  timeout          = 20 // If it doesn't happen in 20 seconds, it's not going to happen
+  s3_bucket        = aws_s3_bucket.code_bucket.bucket
+  s3_key           = aws_s3_object.http.key
+  source_code_hash = filebase64sha256(aws_s3_object.http.source)
 
   environment {
     variables = {

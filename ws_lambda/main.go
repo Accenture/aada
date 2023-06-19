@@ -11,6 +11,7 @@ import (
 )
 
 var kmsKeyArn string
+var websocketUrl string
 
 func main() {
 	s, ok := os.LookupEnv("KMS_KEY_ARN")
@@ -18,6 +19,12 @@ func main() {
 		fmt.Println("KMS_KEY_ARN was not provided")
 	}
 	kmsKeyArn = s
+
+	s, ok = os.LookupEnv("WS_CONN_URL")
+	if !ok {
+		fmt.Println("WS_CONN_URL was not provided")
+	}
+	websocketUrl = s
 
 	lambda.Start(lambdaHandler)
 }
@@ -54,10 +61,11 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 
 	// Package up the information the caller needs to carry into a signed structure
 	info := &Information{
-		ConnectionId: event.Context.ConnectionId,
-		ProfileName:  frame.Profile,
-		ConnectMode:         ModeUnknown,
-		ClientVersion: frame.ClientVersion,
+		ConnectionId:     event.Context.ConnectionId,
+		ProfileName:      frame.Profile,
+		ConnectMode:      ModeUnknown,
+		ClientVersion:    frame.ClientVersion,
+		ConnectionTarget: websocketUrl,
 	}
 	switch frame.Mode {
 	case "access":
@@ -80,12 +88,12 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 		// Fast return the old method
 		return HTTPResponse{
 			StatusCode: http.StatusOK,
-			Body:       fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
+			Body:       fmt.Sprintf("{\"version\":\"2.3.2\",\"state\":\"%s\"}", frame.State),
 		}
 	}
 	return HTTPResponse{
 		StatusCode: http.StatusOK,
-		Body:       fmt.Sprintf("{\"state\":\"%s\",\"context\":\"%s\"}", frame.State, signature),
+		Body:       fmt.Sprintf("{\"version\":\"2.3.2\",\"state\":\"%s\",\"context\":\"%s\"}", frame.State, signature),
 	}
 }
 

@@ -37,6 +37,12 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		case ModeConfiguration:
 			activeState.Mode = "configuration"
 		}
+
+		// If there's a connection target included in the bundle, use it.  This allows for
+		// one region to call a websocket in another region as part of global high-availability.
+		if len(si.Information.ConnectionTarget) > 0 {
+			wsurl = si.Information.ConnectionTarget
+		}
 	} else {
 		// Load from DynamoDB just like we always have.  This will go away after the new
 		// state mechanism is proven.

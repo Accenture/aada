@@ -98,14 +98,18 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 		}, nil
 	}
 
-	wsurl, ok := os.LookupEnv("WS_CONN_URL")
-	if !ok {
-		return Response{StatusCode: http.StatusInternalServerError}, nil
-	}
-
 	switch in.Method {
 	case "GET":
 		switch in.Path {
+		case "/version":
+			return Response{
+				StatusCode: http.StatusOK,
+				Headers: map[string]string{
+					"Content-Type": "application/json",
+				},
+				Body:            "2.3.2",
+				IsBase64Encoded: false,
+			}, nil
 		case "/favicon.ico":
 			return Response{
 				StatusCode: http.StatusOK,
@@ -130,7 +134,8 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 			if state == "awsconsole" || state == "awsconsole2" {
 				return buildAWSConsoleDisplay(code)
 			}
-			return processOIDCRequest(ctx, state, code, "", wsurl)
+
+			return processOIDCRequest(ctx, state, code, "", websocketUrl)
 		case "/awsconsole", "/awsconsole2":
 			// Initiate a redirect for authentication
 			nonce := uuid.NewString()
@@ -171,7 +176,9 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 					return buildFailureResponse("unable to parse response"), nil
 				}
 
-				return processOIDCRequest(ctx, rqv.Get("state"), rqv.Get("code"), rqv.Get("id_token"), wsurl)
+				return processOIDCRequest(ctx, rqv.Get("state"), rqv.Get("code"), rqv.Get("id_token"), websocketUrl)
+			} else {
+				fmt.Println("ERROR post request to /authenticator was not base64 encoded")
 			}
 		}
 	}

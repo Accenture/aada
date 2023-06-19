@@ -16,10 +16,11 @@ const (
 )
 
 type Information struct {
-	ConnectionId  string `cbor:"1,keyasint,omitempty"`
-	ConnectMode   uint8  `cbor:"2,keyasint,omitempty"`
-	ProfileName   string `cbor:"3,keyasint,omitempty"`
-	ClientVersion string `cbor:"4,keyasint,omitempty"`
+	ConnectionId     string `cbor:"1,keyasint,omitempty"`
+	ConnectMode      uint8  `cbor:"2,keyasint,omitempty"`
+	ProfileName      string `cbor:"3,keyasint,omitempty"`
+	ClientVersion    string `cbor:"4,keyasint,omitempty"`
+	ConnectionTarget string `cbor:"5,keyasint,omitempty"`
 }
 
 type SignedInformation struct {

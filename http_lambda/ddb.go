@@ -26,6 +26,7 @@ type ActiveState struct {
 	Profile    string
 	Mode       string
 	Connection string
+	Target     string
 }
 
 func loadState(state string) (*ActiveState, error) {

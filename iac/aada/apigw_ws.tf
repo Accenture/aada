@@ -70,6 +70,8 @@ resource "aws_apigatewayv2_deployment" "wsapi" {
     redeployment = filesha256("../ws_lambda/ws_lambda.zip")
   }
 
+  depends_on = [aws_lambda_function.ws]
+
   lifecycle {
     create_before_destroy = true
   }
