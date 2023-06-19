@@ -5,6 +5,20 @@ Accenture Active Directory Authenticator
 The latest release can always be downloaded from here:
 https://aabg.io/downloads
 
+Release 1.1.2, published Jun 19, 2023 - With the recent AWS outage in
+us-east-1, this version lays down the groundwork for a globally highly
+available configuration.  Since state was stored in a DynamoDB table
+between the websocket and http endpoints, this version instead packs
+the appropriate state information into a packed structure which is
+signed by KMS and sent back to the client.  The new client understands
+this new structure and forwards it on to Azure AD in the state field
+so it can be passed into the http endpoint.  The http endpoint uses
+kms to validate the submitted state with a globally replicated kms
+key.  The code to support client versions prior to 1.1.2 still remains
+in place and functional for backward compatibility, however we cannot
+go fully globally redundant until all clients are upgraded to 1.1.2
+or later.
+
 Release 1.0.14, published Aug 11, 2022 - Updated to use Go 1.19 and
 updated dependencies for AWS SDK and other libraries to latest versions.
 Added presigned url's to the downloads page.
