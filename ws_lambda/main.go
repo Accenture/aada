@@ -88,12 +88,12 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 		// Fast return the old method
 		return HTTPResponse{
 			StatusCode: http.StatusOK,
-			Body:       fmt.Sprintf("{\"version\":\"2.3.2\",\"state\":\"%s\"}", frame.State),
+			Body:       fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
 		}
 	}
 	return HTTPResponse{
 		StatusCode: http.StatusOK,
-		Body:       fmt.Sprintf("{\"version\":\"2.3.2\",\"state\":\"%s\",\"context\":\"%s\"}", frame.State, signature),
+		Body:       fmt.Sprintf("{\"server\":\"2.3.2\",\"state\":\"%s\",\"context\":\"%s\"}", frame.State, signature),
 	}
 }
 
