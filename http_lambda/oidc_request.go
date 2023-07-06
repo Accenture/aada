@@ -11,6 +11,7 @@ import (
 
 func processOIDCRequest(ctx context.Context, state string, code string, idToken string, wsurl string) (Response, error) {
 	var activeState *ActiveState
+	customMessage := "PLEASE UPGRADE TO THE LATEST VERSION OF AADA"
 
 	// Alternate path to load state from packed state vs DynamoDB loaded state
 	if len(state) > 40 {
@@ -43,6 +44,8 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		if len(si.Information.ConnectionTarget) > 0 {
 			wsurl = si.Information.ConnectionTarget
 		}
+
+		customMessage = "login successful"
 	} else {
 		// Load from DynamoDB just like we always have.  This will go away after the new
 		// state mechanism is proven.
@@ -124,5 +127,6 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		return Response{StatusCode: http.StatusInternalServerError}, nil
 	}
 	_ = sendMessageToClient(ctx, wsurl, activeState.Connection, string(msg))
-	return buildSuccessResponse(), nil
+
+	return buildSuccessResponse(customMessage), nil
 }

@@ -91,6 +91,7 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 			Body:       fmt.Sprintf("{\"state\":\"%s\"}", frame.State),
 		}
 	}
+	fmt.Printf("INFO signed %s request from %s using client version %s\n", frame.Mode, info.ConnectionId, info.ClientVersion)
 	return HTTPResponse{
 		StatusCode: http.StatusOK,
 		Body:       fmt.Sprintf("{\"server\":\"2.3.2\",\"state\":\"%s\",\"context\":\"%s\"}", frame.State, signature),

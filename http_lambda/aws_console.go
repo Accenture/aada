@@ -14,6 +14,8 @@ func buildAWSConsoleDisplay(code string) (Response, error) {
 		return buildFailureResponse("failed to convert code: " + err.Error()), nil
 	}
 
+	upn := extractUpn(creds.AccessToken)
+
 	// Get a list of user groups
 	userGroups, err := getUserGroups(creds)
 	if err != nil {
@@ -45,7 +47,7 @@ func buildAWSConsoleDisplay(code string) (Response, error) {
 			for _, servicePrincipal := range fetchAssignedGroupForAWSAccount(creds, account) {
 				link := ConsoleLink{
 					Account: account,
-					Url: fmt.Sprintf(acpLoginUrl, servicePrincipal.DisplayName, servicePrincipal.AppId),
+					Url:     fmt.Sprintf(acpLoginUrl, servicePrincipal.DisplayName, servicePrincipal.AppId),
 				}
 				for _, userGroup := range groupList {
 					for _, assignment := range servicePrincipal.Assignments {
@@ -64,6 +66,8 @@ func buildAWSConsoleDisplay(code string) (Response, error) {
 		}()
 	}
 	workers.Wait()
+
+	fmt.Printf("AUDIT %s accessed the console with %d entries\n", upn, len(content))
 
 	return buildConsolePage(content), nil
 }

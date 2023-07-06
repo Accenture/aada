@@ -107,7 +107,7 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 				Headers: map[string]string{
 					"Content-Type": "application/json",
 				},
-				Body:            "2.3.2",
+				Body:            "2.3.3",
 				IsBase64Encoded: false,
 			}, nil
 		case "/favicon.ico":

@@ -18,10 +18,10 @@ var favicon string
 //go:embed ui_success.html
 var successPage string
 
-func buildSuccessResponse() Response {
+func buildSuccessResponse(message string) Response {
 	return Response{
 		StatusCode: http.StatusOK,
-		Body:       successPage,
+		Body:       strings.Replace(successPage, "__MESSAGE__", message, 1),
 		Headers: map[string]string{
 			"Content-Type": "text/html",
 		},
