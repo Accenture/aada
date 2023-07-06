@@ -89,7 +89,6 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 				return buildFailureResponse("failed to validate group membership"), nil
 			}
 		}
-		upn := extractUpn(accessToken.AccessToken)
 		accountId, groupName, err := unpackGroupName(activeState.Profile)
 		if err != nil {
 			fmt.Println("ERROR", err.Error())
@@ -97,6 +96,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 			return buildFailureResponse("failed to unpack group name"), nil
 		}
 		var tok *types.Credentials
+		upn := extractUpn(accessToken.AccessToken)
 		if len(idToken) > 0 {
 			tok, err = assumeRoleWithWebIdentity(ctx, upn, accountId, groupName, idToken)
 			if err != nil {

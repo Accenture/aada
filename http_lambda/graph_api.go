@@ -6,19 +6,18 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 )
 
-const alternateQuery = "https://graph.microsoft.com/v1.0/users/e31cf4b7-725f-4ed9-a7f6-371a5235d19a/getMemberGroups"
+//const alternateQuery = "https://graph.microsoft.com/v1.0/users/e31cf4b7-725f-4ed9-a7f6-371a5235d19a/getMemberGroups"
 const memberQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf?$search=\"displayName:%s\"&$count=true"
 const groupListQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id,displayName"
-const groupNameQuery = "https://graph.microsoft.com/v1.0/users/%s/memberOf?$select=id,displayName"
-const acpGroupQuery = "https://graph.microsoft.com/v1.0/applications?$filter=startswith(displayName,'113614')&$select=id,displayName"
-const stagingBaseUrl = "https://login.microsoftonline.com/f3211d0e-125b-42c3-86db-322b19a65a22"
+//const groupNameQuery = "https://graph.microsoft.com/v1.0/users/%s/memberOf?$select=id,displayName"
+//const acpGroupQuery = "https://graph.microsoft.com/v1.0/applications?$filter=startswith(displayName,'113614')&$select=id,displayName"
+//const stagingBaseUrl = "https://login.microsoftonline.com/f3211d0e-125b-42c3-86db-322b19a65a22"
 const prodBaseUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb"
 const authUrl = prodBaseUrl + "/oauth2/v2.0/authorize"
 const tokenUrl = prodBaseUrl + "/oauth2/v2.0/token"
@@ -46,7 +45,7 @@ func getAccessTokenFromCode(code string) (*Credentials, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert code to access token")
 	}
-	rb, err := ioutil.ReadAll(rsp.Body)
+	rb, err := io.ReadAll(rsp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read token body")
 	}
@@ -58,42 +57,9 @@ func getAccessTokenFromCode(code string) (*Credentials, error) {
 	}
 	if len(bt.AccessToken) == 0 {
 		fmt.Println("ERROR token exchange", string(rb))
+		return nil, errors.New("token exchange")
 	}
 	return bt, nil
-}
-
-func getGroupName(creds *Credentials, groupId string) (string, error) {
-	fmt.Println("getting group name", groupId)
-
-	req, err := http.NewRequest("GET", fmt.Sprintf(groupNameQuery, groupId), nil)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to build request")
-	}
-	req.Header.Add("Authorization", creds.TokenType+" "+creds.AccessToken)
-	req.Header.Add("ConsistencyLevel", "eventual")
-
-	rsp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to execute group query")
-	}
-	raw, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to read response body")
-	}
-
-	dn := struct {
-		Name string `json:"displayName"`
-	}{}
-	err = json.Unmarshal(raw, &dn)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to unpack response")
-	}
-	if len(dn.Name) == 0 {
-		fmt.Println(string(raw))
-		return "", errors.New("api call response error")
-	}
-
-	return dn.Name, nil
 }
 
 func getUserProfiles(creds *Credentials) (map[string]string, error) {
@@ -112,7 +78,7 @@ func getUserProfiles(creds *Credentials) (map[string]string, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to execute group query")
 		}
-		raw, err := ioutil.ReadAll(rsp.Body)
+		raw, err := io.ReadAll(rsp.Body)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to read response body")
 		}
