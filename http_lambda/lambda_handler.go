@@ -13,6 +13,19 @@ import (
 	"time"
 )
 
+type LambdaFunctionHTTPRequest struct {
+	Method   string `json:"method"`
+	Path     string `json:"path"`
+	Protocol string `json:"protocol"`
+	SourceIp string `json:"sourceIp"`
+}
+
+type RequestContext struct {
+	ApiId      string                    `json:"apiId"`
+	DomainName string                    `json:"domainName"`
+	Request    LambdaFunctionHTTPRequest `json:"http"`
+}
+
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
 type Request struct {
 	Method          string              `json:"httpMethod"`
@@ -22,6 +35,7 @@ type Request struct {
 	IsBase64Encoded bool                `json:"isBase64Encoded"`
 	Query           map[string]string   `json:"queryStringParameters"`
 	QuerySS         map[string][]string `json:"multiValueQueryStringParameters"`
+	Context         RequestContext      `json:"requestContext"`
 }
 
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-output-format
@@ -91,11 +105,21 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 	if len(host) == 0 {
 		host = in.Headers["X-Forwarded-For"]
 	}
+	if len(host) == 0 {
+		host = in.Context.Request.SourceIp
+	}
 	if shouldThrottle(host) {
 		fmt.Println("THROTTLING", host)
 		return Response{
 			StatusCode: 429,
 		}, nil
+	}
+
+	// API Gateway requests come in via in.Method, but Lambda HTTP Invokes come in via the nested block.  This section
+	// pulls in the nested information to support both integration types.
+	if len(in.Method) == 0 {
+		in.Method = in.Context.Request.Method
+		in.Path = in.Context.Request.Path
 	}
 
 	switch in.Method {
@@ -161,6 +185,8 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 					"x-last-result": strconv.Itoa(lastResult),
 				},
 			}, nil
+		case "/":
+			return buildDefaultResponse(), nil
 		}
 	case "POST":
 		switch in.Path {

@@ -53,11 +53,6 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 	}
 
 	frame.State = uuid.NewString()
-	err = frame.Persist(ctx) // Save the state to Dynamo so we can lookup the profile later
-	if err != nil {
-		fmt.Println("error saving state")
-		return HTTPResponse{StatusCode: http.StatusInternalServerError}
-	}
 
 	// Package up the information the caller needs to carry into a signed structure
 	info := &Information{

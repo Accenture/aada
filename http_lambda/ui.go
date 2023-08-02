@@ -33,8 +33,21 @@ var failurePage string
 
 func buildFailureResponse(message string) Response {
 	return Response{
-		StatusCode: http.StatusOK,
+		StatusCode: http.StatusBadRequest,
 		Body:       strings.Replace(failurePage, "__MESSAGE__", message, 1),
+		Headers: map[string]string{
+			"Content-Type": "text/html",
+		},
+	}
+}
+
+//go:embed ui_default.html
+var defaultPage string
+
+func buildDefaultResponse() Response {
+	return Response{
+		StatusCode: http.StatusOK,
+		Body: defaultPage,
 		Headers: map[string]string{
 			"Content-Type": "text/html",
 		},

@@ -9,53 +9,49 @@ import (
 	"time"
 )
 
+type ActiveState struct {
+	State      string
+	Nonce      string
+	Profile    string
+	Mode       string
+	Connection string
+	Target     string
+}
+
 func processOIDCRequest(ctx context.Context, state string, code string, idToken string, wsurl string) (Response, error) {
 	var activeState *ActiveState
-	customMessage := "PLEASE UPGRADE TO THE LATEST VERSION OF AADA"
 
-	// Alternate path to load state from packed state vs DynamoDB loaded state
-	if len(state) > 40 {
-		si := &SignedInformation{}
-		err := si.DecodeFromString(state)
-		if err != nil {
-			fmt.Println("ERROR", err.Error())
-			return buildFailureResponse("failed to unpack state"), nil
-		}
-		err = si.Validate(ctx)
-		if err != nil {
-			fmt.Println("ERROR", err.Error())
-			return buildFailureResponse("failed to validate state"), nil
-		}
-
-		// At this point, passed in state is valid and verified, proceed to trust it
-		activeState = &ActiveState{
-			Profile:    si.Information.ProfileName,
-			Connection: si.Information.ConnectionId,
-		}
-		switch si.Information.ConnectMode {
-		case ModeAccess:
-			activeState.Mode = "access"
-		case ModeConfiguration:
-			activeState.Mode = "configuration"
-		}
-
-		// If there's a connection target included in the bundle, use it.  This allows for
-		// one region to call a websocket in another region as part of global high-availability.
-		if len(si.Information.ConnectionTarget) > 0 {
-			wsurl = si.Information.ConnectionTarget
-		}
-
-		customMessage = "login successful"
-	} else {
-		// Load from DynamoDB just like we always have.  This will go away after the new
-		// state mechanism is proven.
-		loadedState, err := loadState(state)
-		if err != nil {
-			fmt.Println("ERROR", err.Error())
-			return buildFailureResponse("failed to load state"), nil
-		}
-		activeState = loadedState
+	si := &SignedInformation{}
+	err := si.DecodeFromString(state)
+	if err != nil {
+		fmt.Println("ERROR", err.Error())
+		return buildFailureResponse("failed to unpack state"), nil
 	}
+	err = si.Validate(ctx)
+	if err != nil {
+		fmt.Println("ERROR", err.Error())
+		return buildFailureResponse("failed to validate state"), nil
+	}
+
+	// At this point, passed in state is valid and verified, proceed to trust it
+	activeState = &ActiveState{
+		Profile:    si.Information.ProfileName,
+		Connection: si.Information.ConnectionId,
+	}
+	switch si.Information.ConnectMode {
+	case ModeAccess:
+		activeState.Mode = "access"
+	case ModeConfiguration:
+		activeState.Mode = "configuration"
+	}
+
+	// If there's a connection target included in the bundle, use it.  This allows for
+	// one region to call a websocket in another region as part of global high-availability.
+	if len(si.Information.ConnectionTarget) > 0 {
+		wsurl = si.Information.ConnectionTarget
+	}
+
+	customMessage := "login successful"
 
 	accessToken, err := getAccessTokenFromCode(code)
 	if err != nil {

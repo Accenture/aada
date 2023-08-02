@@ -21,23 +21,6 @@ resource "aws_iam_role" "lambda_execution_role" {
 
 data "aws_iam_policy_document" "lambda_policy" {
   statement {
-    sid    = "DynamoDataAccess"
-    effect = "Allow"
-    actions = [
-      "dynamodb:Batch*", // Batch record manipulation
-      "dynamodb:ConditionCheckItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:Describe*", // Descriptive access
-      "dynamodb:Get*",      // Read-only access
-      "dynamodb:PartiQL*",  // PartiQL full access
-      "dynamodb:PutItem",
-      "dynamodb:Query",
-      "dynamodb:Scan",
-      "dynamodb:UpdateItem"
-    ]
-    resources = [module.aada_us_east_1.dynamodb_table_arn]
-  }
-  statement {
     sid    = "KmsSignVerify"
     effect = "Allow"
     actions = [
@@ -50,13 +33,13 @@ data "aws_iam_policy_document" "lambda_policy" {
     sid       = "DownloadClientBinary"
     effect    = "Allow"
     actions   = ["s3:GetObject"]
-    resources = ["${module.aada_us_east_1.s3_bucket_arn}/*"]
+    resources = ["${module.aada_us_east_1.s3_bucket_arn}/*", "${module.aada_us_west_1.s3_bucket_arn}/*"]
   }
   statement {
     sid       = "WSSAsyncPush"
     effect    = "Allow"
     actions   = ["execute-api:ManageConnections"] // https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-control-access-iam.html
-    resources = [module.aada_us_east_1.ws_api_url]
+    resources = [module.aada_us_east_1.ws_api_url, module.aada_us_west_1.ws_api_url]
   }
   statement {
     sid       = "CrossAccountAssumptions"

@@ -21,7 +21,6 @@ resource "aws_lambda_function" "http" {
     variables = {
       CLIENT_ID       = var.client_id
       CLIENT_SECRET   = var.client_secret
-      TABLE_NAME      = aws_dynamodb_table.data.name
       WS_CONN_URL     = "https://${aws_apigatewayv2_api.wsapi.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_apigatewayv2_stage.wsapi_stage.name}/@connections"
       BINARIES_BUCKET = aws_s3_bucket.binaries_bucket.bucket
       KMS_KEY_ARN     = var.kms_key_arn
@@ -36,6 +35,12 @@ resource "aws_lambda_permission" "invoke_http_apigw" {
   principal           = "apigateway.amazonaws.com"
   source_arn          = "${aws_apigatewayv2_api.httpapi.execution_arn}/*/*/{proxy+}"
 }
+
+resource "aws_lambda_function_url" "http" {
+  function_name = aws_lambda_function.http.function_name
+  authorization_type = "NONE"
+}
+
 //
 //resource "aws_lambda_permission" "invoke_http_lex" {
 //  statement_id_prefix = "${local.solution_name}-"
