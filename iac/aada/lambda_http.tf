@@ -37,7 +37,7 @@ resource "aws_lambda_permission" "invoke_http_apigw" {
 }
 
 resource "aws_lambda_function_url" "http" {
-  function_name = aws_lambda_function.http.function_name
+  function_name      = aws_lambda_function.http.function_name
   authorization_type = "NONE"
 }
 

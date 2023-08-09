@@ -87,6 +87,12 @@ resource "aws_apigatewayv2_domain_name" "wsdomain" {
   }
 }
 
+resource "aws_apigatewayv2_api_mapping" "wsdomain" {
+  domain_name = aws_apigatewayv2_domain_name.wsdomain.id
+  api_id      = aws_apigatewayv2_api.wsapi.id
+  stage       = aws_apigatewayv2_stage.wsapi_stage.id
+}
+
 output "ws_endpoint" {
   value = aws_apigatewayv2_stage.wsapi_stage.invoke_url
 }
