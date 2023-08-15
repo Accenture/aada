@@ -11,7 +11,7 @@ import (
 )
 
 var kmsKeyArn string
-var websocketUrl string
+var awsRegion string
 
 func main() {
 	s, ok := os.LookupEnv("KMS_KEY_ARN")
@@ -20,11 +20,18 @@ func main() {
 	}
 	kmsKeyArn = s
 
-	s, ok = os.LookupEnv("WS_CONN_URL")
+	// https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
+	s, ok = os.LookupEnv("AWS_DEFAULT_REGION")
 	if !ok {
-		fmt.Println("WS_CONN_URL was not provided")
+		fmt.Println("AWS_DEFAULT_REGION was not provided")
 	}
-	websocketUrl = s
+	awsRegion = s
+
+	// If defined, this value overrides the AWS_DEFAULT_REGION.
+	s, ok = os.LookupEnv("AWS_REGION")
+	if ok {
+		awsRegion = s
+	}
 
 	lambda.Start(lambdaHandler)
 }
@@ -56,11 +63,12 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 
 	// Package up the information the caller needs to carry into a signed structure
 	info := &Information{
-		ConnectionId:     event.Context.ConnectionId,
-		ProfileName:      frame.Profile,
-		ConnectMode:      ModeUnknown,
-		ClientVersion:    frame.ClientVersion,
-		ConnectionTarget: websocketUrl,
+		ConnectionId:  event.Context.ConnectionId,
+		ApiId:         event.Context.ApiId,
+		ProfileName:   frame.Profile,
+		ConnectMode:   ModeUnknown,
+		ClientVersion: frame.ClientVersion,
+		AWSRegion:     awsRegion,
 	}
 	switch frame.Mode {
 	case "access":

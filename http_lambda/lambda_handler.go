@@ -159,7 +159,7 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 				return buildAWSConsoleDisplay(code)
 			}
 
-			return processOIDCRequest(ctx, state, code, "", websocketUrl)
+			return processOIDCRequest(ctx, state, code, "")
 		case "/awsconsole", "/awsconsole2":
 			// Initiate a redirect for authentication
 			nonce := uuid.NewString()
@@ -202,7 +202,7 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 					return buildFailureResponse("unable to parse response"), nil
 				}
 
-				return processOIDCRequest(ctx, rqv.Get("state"), rqv.Get("code"), rqv.Get("id_token"), websocketUrl)
+				return processOIDCRequest(ctx, rqv.Get("state"), rqv.Get("code"), rqv.Get("id_token"))
 			} else {
 				fmt.Println("ERROR post request to /authenticator was not base64 encoded")
 			}

@@ -20,7 +20,8 @@ type Information struct {
 	ConnectMode      uint8  `cbor:"2,keyasint,omitempty"`
 	ProfileName      string `cbor:"3,keyasint,omitempty"`
 	ClientVersion    string `cbor:"4,keyasint,omitempty"`
-	ConnectionTarget string `cbor:"5,keyasint,omitempty"`
+	ApiId            string `cbor:"5,keyasint,omitempty"`
+	AWSRegion        string `cbor:"6,keyasint,omitempty"`
 }
 
 type SignedInformation struct {

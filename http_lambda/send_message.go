@@ -8,14 +8,13 @@ import (
 	"fmt"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 )
 
-func sendMessageToClient(ctx context.Context, gwurl string, client string, message string) error {
+func sendMessageToClient(ctx context.Context, region string, apiId string, client string, message string) error {
 	rawBody := bytes.NewBufferString(message)
 
 	hasher := sha256.New()
@@ -23,13 +22,8 @@ func sendMessageToClient(ctx context.Context, gwurl string, client string, messa
 	hasher.Write(rawBody.Bytes())
 	sum := hex.EncodeToString(hasher.Sum(nil))
 
-	region, ok := os.LookupEnv("AWS_REGION")
-	if !ok {
-		region = "us-east-1" // Default only
-	}
-
 	// url is expected to be https://etc/@connections, so we're adding /client-id onto the end
-	rawurl, err := url.Parse(gwurl + "/" + client)
+	rawurl, err := url.Parse(fmt.Sprintf("https://%s.execute-api.%s.amazonaws.com/chat/@connections/%s", apiId, region, client))
 	if err != nil {
 		return err
 	}
@@ -40,7 +34,7 @@ func sendMessageToClient(ctx context.Context, gwurl string, client string, messa
 		Method: "POST",
 		URL:    rawurl,
 		Header: make(http.Header),
-		Body:   ioutil.NopCloser(rawBody),
+		Body:   io.NopCloser(rawBody),
 	}
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -61,7 +55,7 @@ func sendMessageToClient(ctx context.Context, gwurl string, client string, messa
 		fmt.Printf("response error %d - %s\n", rsp.StatusCode, rsp.Status)
 		return err
 	}
-	content, _ := ioutil.ReadAll(rsp.Body)
+	content, _ := io.ReadAll(rsp.Body)
 	_ = rsp.Body.Close()
 	fmt.Printf("HTTP %d - %s - %s\n", rsp.StatusCode, rsp.Status, string(content))
 	return nil

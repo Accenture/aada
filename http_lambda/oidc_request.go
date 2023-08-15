@@ -15,10 +15,11 @@ type ActiveState struct {
 	Profile    string
 	Mode       string
 	Connection string
-	Target     string
+	Gateway    string
+	Region     string
 }
 
-func processOIDCRequest(ctx context.Context, state string, code string, idToken string, wsurl string) (Response, error) {
+func processOIDCRequest(ctx context.Context, state string, code string, idToken string) (Response, error) {
 	var activeState *ActiveState
 
 	si := &SignedInformation{}
@@ -37,18 +38,14 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 	activeState = &ActiveState{
 		Profile:    si.Information.ProfileName,
 		Connection: si.Information.ConnectionId,
+		Region:     si.Information.AWSRegion,
+		Gateway:    si.Information.ApiId,
 	}
 	switch si.Information.ConnectMode {
 	case ModeAccess:
 		activeState.Mode = "access"
 	case ModeConfiguration:
 		activeState.Mode = "configuration"
-	}
-
-	// If there's a connection target included in the bundle, use it.  This allows for
-	// one region to call a websocket in another region as part of global high-availability.
-	if len(si.Information.ConnectionTarget) > 0 {
-		wsurl = si.Information.ConnectionTarget
 	}
 
 	customMessage := "login successful"
@@ -79,7 +76,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 			return buildFailureResponse("failed to query group membership"), nil
 		}
 		if !ok {
-			err = sendMessageToClient(ctx, wsurl, activeState.Connection, NotAllowed)
+			err = sendMessageToClient(ctx, activeState.Region, activeState.Gateway, activeState.Connection, NotAllowed)
 			if err != nil {
 				fmt.Println("ERROR", err.Error())
 				return buildFailureResponse("failed to validate group membership"), nil
@@ -88,7 +85,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		accountId, groupName, err := unpackGroupName(activeState.Profile)
 		if err != nil {
 			fmt.Println("ERROR", err.Error())
-			_ = sendMessageToClient(ctx, wsurl, activeState.Connection, InvalidGroupName)
+			_ = sendMessageToClient(ctx, activeState.Region, activeState.Gateway, activeState.Connection, InvalidGroupName)
 			return buildFailureResponse("failed to unpack group name"), nil
 		}
 		var tok *types.Credentials
@@ -97,14 +94,14 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 			tok, err = assumeRoleWithWebIdentity(ctx, upn, accountId, groupName, idToken)
 			if err != nil {
 				fmt.Println("ERROR", err.Error())
-				_ = sendMessageToClient(ctx, wsurl, activeState.Connection, RoleAssumptionFailure)
+				_ = sendMessageToClient(ctx, activeState.Region, activeState.Gateway, activeState.Connection, RoleAssumptionFailure)
 				return buildFailureResponse("failed to fetch credentials"), nil
 			}
 		} else {
 			tok, err = assumeRole(ctx, upn, accountId, groupName)
 			if err != nil {
 				fmt.Println("ERROR", err.Error())
-				_ = sendMessageToClient(ctx, wsurl, activeState.Connection, RoleAssumptionFailure)
+				_ = sendMessageToClient(ctx, activeState.Region, activeState.Gateway, activeState.Connection, RoleAssumptionFailure)
 				return buildFailureResponse("failed to fetch credentials"), nil
 			}
 		}
@@ -122,7 +119,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		fmt.Println("ERROR", err.Error())
 		return Response{StatusCode: http.StatusInternalServerError}, nil
 	}
-	_ = sendMessageToClient(ctx, wsurl, activeState.Connection, string(msg))
+	_ = sendMessageToClient(ctx, activeState.Region, activeState.Gateway, activeState.Connection, string(msg))
 
 	return buildSuccessResponse(customMessage), nil
 }
