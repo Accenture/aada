@@ -20,7 +20,6 @@ resource "aws_lambda_function" "ws" {
   environment {
     variables = {
       KMS_KEY_ARN = var.kms_key_arn
-      WS_CONN_URL = "https://${aws_apigatewayv2_api.wsapi.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_apigatewayv2_stage.wsapi_stage.name}/@connections"
     }
   }
 }

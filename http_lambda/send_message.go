@@ -57,6 +57,6 @@ func sendMessageToClient(ctx context.Context, region string, apiId string, clien
 	}
 	content, _ := io.ReadAll(rsp.Body)
 	_ = rsp.Body.Close()
-	fmt.Printf("HTTP %d - %s - %s\n", rsp.StatusCode, rsp.Status, string(content))
+	fmt.Printf("INFO WSS HTTP status %d - %s - %s\n", rsp.StatusCode, rsp.Status, string(content))
 	return nil
 }

@@ -84,10 +84,19 @@ func internal() error {
 				fmt.Println("failed to open https://aabg.io/awsconsole")
 			}
 			return err
+		case "update", "-upgrade", "--upgrade":
+			err := browser.OpenURL("https://aabg.io/downloads")
+			if err != nil {
+				fmt.Println("failed to open https://aabg.io/downloads")
+			}
+			return err
 		case "configure", "-configure", "--configure":
 			frame.Mode = "configuration"
 		case "-long-profile-names", "--long-profile-names":
 			useLongNameFormat = true
+		case "version", "-v", "-version", "--version":
+			fmt.Println("aada version", version)
+			return nil
 		case "-h", "-?", "-help", "--help":
 			fmt.Println("Version:", version)
 			fmt.Println(UsageInfo)

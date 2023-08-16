@@ -28,24 +28,7 @@ resource "aws_lambda_function" "http" {
   }
 }
 
-resource "aws_lambda_permission" "invoke_http_apigw" {
-  statement_id_prefix = "${var.solution_name}-"
-  action              = "lambda:InvokeFunction"
-  function_name       = aws_lambda_function.http.function_name
-  principal           = "apigateway.amazonaws.com"
-  source_arn          = "${aws_apigatewayv2_api.httpapi.execution_arn}/*/*/{proxy+}"
-}
-
 resource "aws_lambda_function_url" "http" {
   function_name      = aws_lambda_function.http.function_name
   authorization_type = "NONE"
 }
-
-//
-//resource "aws_lambda_permission" "invoke_http_lex" {
-//  statement_id_prefix = "${local.solution_name}-"
-//  action              = "lambda:InvokeFunction"
-//  function_name       = aws_lambda_function.lambda_handler.function_name
-//  principal           = "lex.amazonaws.com"
-//  source_arn          = "${aws_lex_intent.check_balance.id}/*"
-//}

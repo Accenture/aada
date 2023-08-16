@@ -2,7 +2,7 @@ WEBSOCKET wss://wss.aabg.io
 Content-Type: application/jsonc
 
 {
-    "nonce": "abcd01234",
+    "nonce": "asldkfjhasdkljfhasdkljfhasldfjh",
     "profile": "AWS_868024899531_iesawsna-sandbox",
     "mode": "access"
 }
