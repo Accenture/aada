@@ -42,6 +42,7 @@ type Frame struct {
 	State         string `json:"state"`
 	Mode          string `json:"mode"`
 	ClientVersion string `json:"client_version"`
+	Duration      int    `json:"duration"`
 	Connection    string `json:"-"`
 }
 
@@ -69,6 +70,7 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 		ConnectMode:   ModeUnknown,
 		ClientVersion: frame.ClientVersion,
 		AWSRegion:     awsRegion,
+		Duration:      frame.Duration,
 	}
 	switch frame.Mode {
 	case "access":
@@ -95,6 +97,7 @@ func processMessage(ctx context.Context, event Event) HTTPResponse {
 		}
 	}
 	fmt.Printf("INFO signed %s request from %s using client version %s\n", frame.Mode, info.ConnectionId, info.ClientVersion)
+	fmt.Printf("INFO info %+v\n", info)
 	return HTTPResponse{
 		StatusCode: http.StatusOK,
 		Body:       fmt.Sprintf("{\"server\":\"2.3.2\",\"state\":\"%s\",\"context\":\"%s\"}", frame.State, signature),

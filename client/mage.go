@@ -142,6 +142,18 @@ func Package() error {
 	return nil
 }
 
+func PushToProd() error {
+	fmt.Println("sending binaries to S3")
+	for _, t := range allReleases {
+		fmt.Print(t[0], " us-east-1")
+		sh.Run("aws", "s3", "cp", t[0], "s3://aada-pet-werewolf-us-east-1-binaries/"+t[0])
+		fmt.Print(" us-west-1")
+		sh.Run("aws", "s3", "cp", t[0], "s3://aada-pet-werewolf-us-west-1-binaries/"+t[0])
+		fmt.Println(" ok")
+	}
+	return nil
+}
+
 func zipFile(source string, name string, dest string) error {
 	fmt.Printf("compressing %s into %s", source, dest)
 

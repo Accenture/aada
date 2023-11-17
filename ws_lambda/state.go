@@ -22,6 +22,7 @@ type Information struct {
 	ClientVersion    string `cbor:"4,keyasint,omitempty"`
 	ApiId            string `cbor:"5,keyasint,omitempty"`
 	AWSRegion        string `cbor:"6,keyasint,omitempty"`
+	Duration         int    `cbor:"7,keyasint,omitempty"`
 }
 
 type SignedInformation struct {

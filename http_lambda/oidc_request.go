@@ -17,6 +17,7 @@ type ActiveState struct {
 	Connection string
 	Gateway    string
 	Region     string
+	Duration   int
 }
 
 func processOIDCRequest(ctx context.Context, state string, code string, idToken string) (Response, error) {
@@ -34,12 +35,15 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 		return buildFailureResponse("failed to validate state"), nil
 	}
 
+	fmt.Printf("VALID request %+v", si.Information)
+
 	// At this point, passed in state is valid and verified, proceed to trust it
 	activeState = &ActiveState{
 		Profile:    si.Information.ProfileName,
 		Connection: si.Information.ConnectionId,
 		Region:     si.Information.AWSRegion,
 		Gateway:    si.Information.ApiId,
+		Duration:   si.Information.Duration,
 	}
 	switch si.Information.ConnectMode {
 	case ModeAccess:
@@ -98,7 +102,8 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 				return buildFailureResponse("failed to fetch credentials"), nil
 			}
 		} else {
-			tok, err = assumeRole(ctx, upn, accountId, groupName)
+			fmt.Println("INFO assuming", upn, "in", accountId, "with", groupName, "for", activeState.Duration)
+			tok, err = assumeRole(ctx, upn, accountId, groupName, activeState.Duration)
 			if err != nil {
 				fmt.Println("ERROR", err.Error())
 				_ = sendMessageToClient(ctx, activeState.Region, activeState.Gateway, activeState.Connection, RoleAssumptionFailure)

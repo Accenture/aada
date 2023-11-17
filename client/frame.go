@@ -16,6 +16,7 @@ type Frame struct {
 	SessionToken    string            `json:"session_token,omitempty"`
 	Expiration      string            `json:"expiration,omitempty"`
 	Message         string            `json:"message,omitempty"`
+	Duration        int               `json:"duration,omitempty"`
 	ProfileList     map[string]string `json:"profile_list,omitempty"`
 }
 

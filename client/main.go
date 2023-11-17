@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 //go:embed version.info
@@ -22,7 +23,7 @@ const UsageInfo = `
  / /\   / /\  | | \  / /\  
 /_/--\ /_/--\ |_|_/ /_/--\ 
 
-Usage: aada -configure [-long-profile-names]
+Usage: aada -configure [-horizon=...] [-duration=...]
 
 When configure completes, it will list what Azure AD roles/groups you have and what profiles
 they have been installed into.  You should see something like this:
@@ -44,10 +45,20 @@ aws --profile RoleName sts get-caller-identity
 If the CLI needs to fetch credentials, a browser window will open to authenticate you.  The
 credentials will be cached in ~/.aws/credentials for subsequent use.
 
-The -long-profile-names switch will use [account number]_[role name] for the profile names.
-This is especially useful when you have multiple accounts, each with an identical role 
-name, such as Admin.  Feel free to change the profile names in the config file as you see 
-fit.  AADA doesn't require any specific profile name to function.`
+If you need AADA to ensure a credential is valid for a minimum amount of time, such as when
+running automation that takes 15-30 minutes to run, you can use the -horizon switch in the 
+~/.aws/config file:
+
+[profile example]
+credential-process = aada AWS_01234567890_example -horizon=30m
+
+This will ensure there's at least 30 minutes of time left on the returned credential before
+it expires, or will request new credentials from the provider if the credential expires within
+that time period.  You can use seconds (90s), minutes (30m), or hours (4h) with this switch.
+
+There is also a -duration switch that requests the credentials for a specified duration of
+time.  This is passed to the AssumeRole API call when requesting credentials, and must be 
+less than or equal to the maximum session duration specified in the IAM role configuration.`
 
 func main() {
 	if len(os.Args) < 2 {
@@ -72,9 +83,11 @@ func internal() error {
 		Profile:       os.Args[1],
 		Mode:          "access",
 		ClientVersion: version,
+		Duration:      3600, // One hour by default
 	}
 
 	useLongNameFormat := false
+	horizon := time.Now()
 
 	for i := 1; i < len(os.Args); i++ {
 		switch strings.ToLower(os.Args[i]) {
@@ -102,8 +115,22 @@ func internal() error {
 			fmt.Println(UsageInfo)
 			return nil
 		default:
-			if os.Args[i][0:1] == "-" {
-				fmt.Println("Invalid switch:", os.Args[0])
+			if strings.HasPrefix(strings.ToLower(os.Args[i]), "-horizon") {
+				t, err := parseSwitch("horizon", os.Args[i])
+				if err != nil {
+					fmt.Println("failed to parse horizon")
+					return nil
+				}
+				horizon = horizon.Add(t)
+			} else if strings.HasPrefix(strings.ToLower(os.Args[i]), "-duration") {
+				t, err := parseSwitch("duration", os.Args[i])
+				if err != nil {
+					fmt.Println("failed to parse duration")
+					return nil
+				}
+				frame.Duration = int(t.Seconds())
+			} else if os.Args[i][0:1] == "-" {
+				fmt.Println("Invalid switch:", os.Args[i])
 				fmt.Println(UsageInfo)
 				return nil
 			}
@@ -111,7 +138,7 @@ func internal() error {
 	}
 
 	if frame.Mode == "access" {
-		err := lookupCache(frame)
+		err := lookupCache(frame, horizon)
 		if err == nil {
 			// We have cached credentials
 			fmt.Println(frame.ToCredentialString())

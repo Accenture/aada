@@ -14,7 +14,7 @@ import (
 )
 
 // Either returns populated credentials, or nil if they don't exist
-func lookupCache(frame *Frame) error {
+func lookupCache(frame *Frame, horizon time.Time) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func lookupCache(frame *Frame) error {
 
 	credsPath := filepath.Join(home, ".aws", "credentials")
 	var credsFile []byte
-	credsFile, err = ioutil.ReadFile(credsPath)
+	credsFile, err = os.ReadFile(credsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			credsFile = []byte{} // Empty file
@@ -53,7 +53,7 @@ func lookupCache(frame *Frame) error {
 	if err != nil {
 		return err
 	}
-	if expt.Before(time.Now()) {
+	if expt.Before(horizon) {
 		return errors.New("credentials expired")
 	}
 	// Cached credentials are good, flesh out the rest of the response
