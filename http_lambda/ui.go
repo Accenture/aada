@@ -47,7 +47,7 @@ var defaultPage string
 func buildDefaultResponse() Response {
 	return Response{
 		StatusCode: http.StatusOK,
-		Body: defaultPage,
+		Body:       defaultPage,
 		Headers: map[string]string{
 			"Content-Type": "text/html",
 		},
@@ -58,9 +58,9 @@ func buildDefaultResponse() Response {
 var consolePage string
 
 type ConsoleLink struct {
-	Url          string
-	DisplayNames []string
-	Account      string
+	Url          string   `cbor:"1,keyasint,omitempty"`
+	DisplayNames []string `cbor:"2,keyasint,omitempty"`
+	Account      string   `cbor:"3,keyasint,omitempty"`
 }
 
 func buildConsolePage(links []ConsoleLink) Response {
