@@ -121,6 +121,9 @@ The real downside is that the Serverless framework won't call the AADA credentia
 AWS SDK application, so you'll have to manually run that sts command to get fresh credentials every hour.  It's not ideal
 but at least it works.
 
+## High Level Architecture
+![Architecture](Architecture.png)
+
 ## Who do I blame when things go wrong?
 This was written by Eric Hill.  Ping me on Teams and I'll see what I can do to help.
 

@@ -6,6 +6,10 @@ app registration.
 
 ## High Level Deployment
 
+A picture is worth 1000 words.
+
+![Architecture](Architecture.png)
+
 When configuring AADA for your company, a few items need to be in place.  You will need a url that
 can be hosted on AWS, and be attached (via CNAME) to CloudFront.  This serves as the highly-available
 endpoint for all HTTP communications.  There is also a DNS round-robin name for the WSS communications
