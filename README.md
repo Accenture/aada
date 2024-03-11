@@ -1,135 +1,18 @@
 # AADA
+
 Accenture Active Directory Authenticator
 
-## Release information
-The latest release can always be downloaded from here:
-https://aabg.io/downloads
-
-Release 1.1.2, published Jun 19, 2023 - With the recent AWS outage in
-us-east-1, this version lays down the groundwork for a globally highly
-available configuration.  Since state was stored in a DynamoDB table
-between the websocket and http endpoints, this version instead packs
-the appropriate state information into a packed structure which is
-signed by KMS and sent back to the client.  The new client understands
-this new structure and forwards it on to Azure AD in the state field
-so it can be passed into the http endpoint.  The http endpoint uses
-kms to validate the submitted state with a globally replicated kms
-key.  The code to support client versions prior to 1.1.2 still remains
-in place and functional for backward compatibility, however we cannot
-go fully globally redundant until all clients are upgraded to 1.1.2
-or later.
-
-Release 1.0.14, published Aug 11, 2022 - Updated to use Go 1.19 and
-updated dependencies for AWS SDK and other libraries to latest versions.
-Added presigned url's to the downloads page.
-
-Release 1.0.13, published July 25, 2022 - Updated to use Go 1.18.4 and
-updated dependencies for AWS SDK and other libraries to latest versions.
-Also added a version string to the initial frame request for server-side
-troubleshooting if needed.
-
-Release 1.0.12, unpublished - Changed the profile name in the credentials
-file to include a _cache suffix to try and eliminate an annoying bug
-where an application tries to shortcut the credential process by looking
-directly in the credentials file.  Having found credentials, the app
-tries to use them without checking the expiration date and errors.  You
-either have to manually refresh the creds (sts get-caller-identity for
-example), or delete the credentials so the problematic application will
-just do it the right way and stop shortcutting things.  This change WILL
-LIKELY BREAK the serverless framework since it looks in credentials 
-directly.  As such, this build is unpublished until I figure out a way
-to be compatible with some of these problematic applications.
-
-Release 1.0.11, published May 13, 2022 - Updated to use Go 1.18.2. 
-Corrected Mage build system to use generic aada.exe or aada names 
-inside zip files instead of the interim build executable names.  This
-caused some confusion on Windows platforms when the binary in the zip
-was aada_win_x64.exe, and really just should have been aada.exe.
-
-Release 1.0.10, published Apr 15, 2022 - Updated to use Go 1.18.1 and
-to use the Mage build system instead of Makefile.  Mage now includes a 
-release to help with uploading releases to GitHub.
-
-Release 1.0.9, internal build, unreleased.
-
-Release 1.0.8, published Jan 5, 2022 - Updated to use Go 1.17.5. No other
-changes.
-
-Release 1.0.7, published September 22, 2021 - Updated to use Go 1.17.1.
-Added a new -long-profile-names switch, so that profiles with similar
-names (Admin) will actually be named 012345_Admin and 67890_Admin instead
-of Admin and Admin2.  You can obviously change the profile names to your
-liking as well (e.g. ClientName_Admin) since AADA doesn't really care
-what the profile name actually is.
-
-Release 1.0.6, published August 31, 2021 - Updated to use Go 1.17 which
-should give a tiny speed boost and cut roughly 10% from the total binary
-size.  No additional features, and upgrading from 1.0.5 is purely optional.
-
-Release 1.0.5, published August 13, 2021 - Added the ability to deal with
-both `-configure` AND `--configure` since that seems to be the #1 reason 
-people have issues getting aada to work.  Also added another switch to 
-launch the AWS Console interface (https://aabg.io/awsconsole), so in your
-terminal you can type `aada -console` and it will open that url for you.
-
-Release 1.0.4, published July 22, 2021 - Added simple check for missing
-expiration date in credentials file to force new credentials to be fetched.
-This solves the common issue of stale (older) credentials from prior
-versions of aada or aaca.  Deleting the credentials file accomplishes the
-same results, just with more effort.  Also changed the build mechanism to
-deliver all of the binaries inside platform and architecture specific zip
-files.  The linux arm32 files work on Raspberry Pi systems running against
-the ARM v7 architecture.  The linux arm64 work on ARM v8 or later.
-
-Release 1.0.3, published July 19, 2021 - First non-beta release of Mac
-M1 build.  Better error handling, invalid switch detection, and proper
-usage display for help.
-
-Release 1.0.2, published July 14, 2021 - Non-beta release functionally
-equivalent to 1.0.1-beta.  Now with a pretty usage screen.
-
-Release 1.0.1-beta, published July 6, 2021 - A few minor tweaks and the
-addition of full autoconfiguration, assuming `aada` is in your path.
-
-Release 1.0.0-beta, published June 9, 2021 - Complete overhaul and 
-refactor to use OAuth2 as a trusted Azure AD application.  This version
-is 100% different, and not backward compatible with prior versions.  It 
-requires a custom trust on the assumed role, but with that trust, buys
-a completely seamless CLI authentication experience.
-
-Release 0.1.8, published March 15, 2021 - New builds with Go version
-1.16.2.
-
-Release 0.1.7, published Feb 26, 2021 - New builds with Go version 1.16.0
-to fix the false-positive hueristic virus detection by Cylance and
-Microsoft Defender (Program.Win32/Wacapew.C!ml).  To be clear, the 
-previous version had no virus in it.  This version is actually throwing
-a false positive for TrojanSpy.MSIL.bgkz with the Jiangmin scanner, but
-Defender is now happy.  I'll try to run these through VirusTotal from
-now on to make sure we don't have any more false positives.
-
-Release 0.1.6, published Feb 22, 2021 - Added the ability for AADA to
-automatically create the .aws folder if it doesn't already exist.
-
-Release 0.1.5, published Jan 19, 2021 - Added the ability for AADA to 
-automatically create config and credentials files if they do not already
-exist.  Additionally, the aada Mac binary has been signed with an Apple
-developer certificate to comply with the new Mac signature requirements.
-The signed binary is in binaries/mac/aada, and has also been zipped into
-binaries/mac/aada.zip for your convenience.
-
-Release 0.1.4, published Jan 12, 2021 - No new features.  New Go compiler
-producing a slightly better binary and refreshed dependencies.  Not a 
-required upgrade.
-
-Initial release 0.1.3, published May 12, 2020.
-
 ## What is this?
+
 This is an AWS SDK credential helper that understands how to authenticate
 you against the Accenture Active Directory, providing a completely seamless
 authentication experience without having to enter your password or security
 token.  This is useful for tools such as Terraform to more 
 easily work within Accenture AWS accounts using federated credentials.
+
+## Can I use this for my company?
+
+Yes, and you should review the [customizing](CUSTOMIZING.md) instructions.
 
 ## How do I install it?
 
@@ -140,6 +23,7 @@ There are no other system requirements.  The "aada" binary must be in
 your system path for this to work properly.
 
 ## How do I use it?
+
 Start with configuration by running `aada -configure` and aada will setup
 your granted profiles into your AWS configuration.  Each profile will be
 configured to automatically call aada with the correct account and group
@@ -156,6 +40,10 @@ $ aws --profile iesawsna-sandbox sts get-caller-identity
     "Arn": "arn:aws:sts::868024899531:assumed-role/iesawsna-sandbox/eric.hill@accenture.com"
 }
 ```
+
+You should see something that looks like this picture in a browser.
+
+![Screenshot](screenshot.png)
 
 Once your first authentication completes, the credentials are cached in the
 aws credentials file so that subsequent API calls complete without the 
@@ -235,3 +123,126 @@ but at least it works.
 
 ## Who do I blame when things go wrong?
 This was written by Eric Hill.  Ping me on Teams and I'll see what I can do to help.
+
+## Release information
+The latest release can always be downloaded from here:
+https://aabg.io/downloads
+
+Release 1.1.2, published Jun 19, 2023 - With the recent AWS outage in
+us-east-1, this version lays down the groundwork for a globally highly
+available configuration.  Since state was stored in a DynamoDB table
+between the websocket and http endpoints, this version instead packs
+the appropriate state information into a packed structure which is
+signed by KMS and sent back to the client.  The new client understands
+this new structure and forwards it on to Azure AD in the state field
+so it can be passed into the http endpoint.  The http endpoint uses
+kms to validate the submitted state with a globally replicated kms
+key.  The code to support client versions prior to 1.1.2 still remains
+in place and functional for backward compatibility, however we cannot
+go fully globally redundant until all clients are upgraded to 1.1.2
+or later.
+
+Release 1.0.14, published Aug 11, 2022 - Updated to use Go 1.19 and
+updated dependencies for AWS SDK and other libraries to latest versions.
+Added presigned url's to the downloads page.
+
+Release 1.0.13, published July 25, 2022 - Updated to use Go 1.18.4 and
+updated dependencies for AWS SDK and other libraries to latest versions.
+Also added a version string to the initial frame request for server-side
+troubleshooting if needed.
+
+Release 1.0.12, unpublished - Changed the profile name in the credentials
+file to include a _cache suffix to try and eliminate an annoying bug
+where an application tries to shortcut the credential process by looking
+directly in the credentials file.  Having found credentials, the app
+tries to use them without checking the expiration date and errors.  You
+either have to manually refresh the creds (sts get-caller-identity for
+example), or delete the credentials so the problematic application will
+just do it the right way and stop shortcutting things.  This change WILL
+LIKELY BREAK the serverless framework since it looks in credentials
+directly.  As such, this build is unpublished until I figure out a way
+to be compatible with some of these problematic applications.
+
+Release 1.0.11, published May 13, 2022 - Updated to use Go 1.18.2.
+Corrected Mage build system to use generic aada.exe or aada names
+inside zip files instead of the interim build executable names.  This
+caused some confusion on Windows platforms when the binary in the zip
+was aada_win_x64.exe, and really just should have been aada.exe.
+
+Release 1.0.10, published Apr 15, 2022 - Updated to use Go 1.18.1 and
+to use the Mage build system instead of Makefile.  Mage now includes a
+release to help with uploading releases to GitHub.
+
+Release 1.0.9, internal build, unreleased.
+
+Release 1.0.8, published Jan 5, 2022 - Updated to use Go 1.17.5. No other
+changes.
+
+Release 1.0.7, published September 22, 2021 - Updated to use Go 1.17.1.
+Added a new -long-profile-names switch, so that profiles with similar
+names (Admin) will actually be named 012345_Admin and 67890_Admin instead
+of Admin and Admin2.  You can obviously change the profile names to your
+liking as well (e.g. ClientName_Admin) since AADA doesn't really care
+what the profile name actually is.
+
+Release 1.0.6, published August 31, 2021 - Updated to use Go 1.17 which
+should give a tiny speed boost and cut roughly 10% from the total binary
+size.  No additional features, and upgrading from 1.0.5 is purely optional.
+
+Release 1.0.5, published August 13, 2021 - Added the ability to deal with
+both `-configure` AND `--configure` since that seems to be the #1 reason
+people have issues getting aada to work.  Also added another switch to
+launch the AWS Console interface (https://aabg.io/awsconsole), so in your
+terminal you can type `aada -console` and it will open that url for you.
+
+Release 1.0.4, published July 22, 2021 - Added simple check for missing
+expiration date in credentials file to force new credentials to be fetched.
+This solves the common issue of stale (older) credentials from prior
+versions of aada or aaca.  Deleting the credentials file accomplishes the
+same results, just with more effort.  Also changed the build mechanism to
+deliver all of the binaries inside platform and architecture specific zip
+files.  The linux arm32 files work on Raspberry Pi systems running against
+the ARM v7 architecture.  The linux arm64 work on ARM v8 or later.
+
+Release 1.0.3, published July 19, 2021 - First non-beta release of Mac
+M1 build.  Better error handling, invalid switch detection, and proper
+usage display for help.
+
+Release 1.0.2, published July 14, 2021 - Non-beta release functionally
+equivalent to 1.0.1-beta.  Now with a pretty usage screen.
+
+Release 1.0.1-beta, published July 6, 2021 - A few minor tweaks and the
+addition of full autoconfiguration, assuming `aada` is in your path.
+
+Release 1.0.0-beta, published June 9, 2021 - Complete overhaul and
+refactor to use OAuth2 as a trusted Azure AD application.  This version
+is 100% different, and not backward compatible with prior versions.  It
+requires a custom trust on the assumed role, but with that trust, buys
+a completely seamless CLI authentication experience.
+
+Release 0.1.8, published March 15, 2021 - New builds with Go version
+1.16.2.
+
+Release 0.1.7, published Feb 26, 2021 - New builds with Go version 1.16.0
+to fix the false-positive hueristic virus detection by Cylance and
+Microsoft Defender (Program.Win32/Wacapew.C!ml).  To be clear, the
+previous version had no virus in it.  This version is actually throwing
+a false positive for TrojanSpy.MSIL.bgkz with the Jiangmin scanner, but
+Defender is now happy.  I'll try to run these through VirusTotal from
+now on to make sure we don't have any more false positives.
+
+Release 0.1.6, published Feb 22, 2021 - Added the ability for AADA to
+automatically create the .aws folder if it doesn't already exist.
+
+Release 0.1.5, published Jan 19, 2021 - Added the ability for AADA to
+automatically create config and credentials files if they do not already
+exist.  Additionally, the aada Mac binary has been signed with an Apple
+developer certificate to comply with the new Mac signature requirements.
+The signed binary is in binaries/mac/aada, and has also been zipped into
+binaries/mac/aada.zip for your convenience.
+
+Release 0.1.4, published Jan 12, 2021 - No new features.  New Go compiler
+producing a slightly better binary and refreshed dependencies.  Not a
+required upgrade.
+
+Initial release 0.1.3, published May 12, 2020.
