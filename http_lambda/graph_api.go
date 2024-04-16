@@ -12,12 +12,9 @@ import (
 	"strings"
 )
 
-//const alternateQuery = "https://graph.microsoft.com/v1.0/users/e31cf4b7-725f-4ed9-a7f6-371a5235d19a/getMemberGroups"
 const memberQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf?$search=\"displayName:%s\"&$count=true"
 const groupListQuery = "https://graph.microsoft.com/v1.0/me/transitiveMemberOf/microsoft.graph.group?$select=id,displayName"
-//const groupNameQuery = "https://graph.microsoft.com/v1.0/users/%s/memberOf?$select=id,displayName"
-//const acpGroupQuery = "https://graph.microsoft.com/v1.0/applications?$filter=startswith(displayName,'113614')&$select=id,displayName"
-//const stagingBaseUrl = "https://login.microsoftonline.com/f3211d0e-125b-42c3-86db-322b19a65a22"
+
 const prodBaseUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb"
 const authUrl = prodBaseUrl + "/oauth2/v2.0/authorize"
 const tokenUrl = prodBaseUrl + "/oauth2/v2.0/token"
