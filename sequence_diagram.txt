@@ -1,0 +1,8 @@
+sequenceDiagram
+    Client->>wss.aabg.io: Auth setup to <profile>
+    wss.aabg.io->>Client: Encrypted <session>
+    Client->>Entra ID: Auth <session>
+    Entra ID->>Client: Redirect <token>
+    Client->>aabg.io: Redirected <token>
+    aabg.io->>wss.aabg.io: Send <AWS Credentials>
+    wss.aabg.io->>Client: Send <AWS Credentials>
