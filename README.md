@@ -35,9 +35,9 @@ complete successfully.
 ```
 $ aws --profile iesawsna-sandbox sts get-caller-identity
 {
-    "UserId": "AREXAMPLEKEYIDGOESHERE:eric.hill@accenture.com",
+    "UserId": "AREXAMPLEKEYIDGOESHERE:user.name@accenture.com",
     "Account": "868024899531",
-    "Arn": "arn:aws:sts::868024899531:assumed-role/iesawsna-sandbox/eric.hill@accenture.com"
+    "Arn": "arn:aws:sts::868024899531:assumed-role/iesawsna-sandbox/user.name@accenture.com"
 }
 ```
 
@@ -59,6 +59,8 @@ longer assumption time.
 4. The lambda on the back-end verifies the OAuth2 token and validates group membership
 5. The lambda then retrieves assumed-role credentials and sends them back down the websocket to the client
 6. The client caches the credentials and returns them to the SDK
+
+![Sequence Diagram](sequence_diagram.svg)
 
 ## So what's required on the assumed roles?
 
@@ -106,7 +108,7 @@ The Serverless framework is available from [Serverless](https://serverless.com) 
 as a good starting point to deploy Lambda functions.
 Getting credentials into your AWS account for Serverless to do its thing should be relatively easy, however when using
 AADA, the `serverless deploy` command throws an error "AWS profile profile_name_here doesn't seem to be configured".  After
-troubleshooting with [Kamorudeen Salako](mailto:kamorudeen.salako@accenture.com), we figured out that the Serverless 
+troubleshooting with Kamorudeen, we figured out that the Serverless 
 framework doesn't actually load the `~/.aws/config` file like every other SDK.  Instead, it looks for the profile name
 in the `~/.aws/credentials` file and fetches the credentials directly.
 
