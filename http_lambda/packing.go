@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"regexp"
 	"strings"
 )
 
@@ -17,12 +18,16 @@ func unpackGroupName(profile string) (string, string, error) {
 	if strings.HasPrefix(profile, "AWS_") {
 		separator = "_"
 	}
-	parts := strings.SplitN(profile, separator, 3)
+	parts := strings.SplitN(profile, separator, 3) // note this only splits into up to three pieces
 	if len(parts) != 3 {
 		return "", "", errors.New("^invalid role structure " + profile)
 	}
 	if parts[0] != "AWS" {
 		return "", "", errors.New("invalid role name")
+	}
+	// verify the account number is fully numeric
+	if match, _ := regexp.MatchString("\\d+", parts[1]); !match {
+		return "", "", errors.New("role does not include valid account number")
 	}
 	return parts[1], parts[2], nil
 }

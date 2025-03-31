@@ -8,7 +8,7 @@ import (
 )
 
 const servicePrincipalQuery = "https://graph.microsoft.com/v1.0/servicePrincipals?$count=true&$filter=tags%2Fany%28t%3At%20eq%20%27AWS%27%29&$select=id,appId,displayName,tags"
-const servicePrincipalQueryByAccount = "https://graph.microsoft.com/v1.0/servicePrincipals?$count=true&$filter=tags%2Fany%28t%3At%20eq%20%27AWSAccountNumber%3D__ACCOUNT__%27%29&$select=id,appId,displayName,tags"
+const servicePrincipalQueryByAccount = "https://graph.microsoft.com/v1.0/servicePrincipals?$count=true&$filter=tags%2Fany%28t%3At%20eq%20%27AWSAccountNumber%3D__ACCOUNT__%27%29%20or%20startswith%28displayName%2C%20%27113614___ACCOUNT__%27%29&$select=id,appId,displayName,tags"
 const appRoleAssignmentsQuery = "https://graph.microsoft.com/v1.0/servicePrincipals/%s/appRoleAssignedTo"
 
 type AzureAppDef struct {
