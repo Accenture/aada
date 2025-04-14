@@ -85,6 +85,7 @@ func processOIDCRequest(ctx context.Context, state string, code string, idToken 
 				fmt.Println("ERROR", err.Error())
 				return buildFailureResponse("failed to validate group membership"), nil
 			}
+			return buildFailureResponse("failed to validate group membership"), nil
 		}
 		accountId, groupName, err := unpackGroupName(activeState.Profile)
 		if err != nil {
