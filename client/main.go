@@ -87,6 +87,7 @@ func internal() error {
 	}
 
 	useLongNameFormat := false
+	cliMode := false
 	horizon := time.Now()
 
 	for i := 1; i < len(os.Args); i++ {
@@ -129,6 +130,8 @@ func internal() error {
 					return nil
 				}
 				frame.Duration = int(t.Seconds())
+			} else if strings.HasPrefix(strings.ToLower(os.Args[i]), "-cli") {
+				cliMode = true
 			} else if os.Args[i][0:1] == "-" {
 				fmt.Println("Invalid switch:", os.Args[i])
 				fmt.Println(UsageInfo)
@@ -173,7 +176,7 @@ func internal() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to unpack frame")
 	}
-	err = launchLogin(nonce, frame.Context, frame.Mode == "configuration")
+	err = launchLogin(nonce, frame.Context, frame.Mode == "configuration", cliMode)
 	if err != nil {
 		return errors.Wrap(err, "failed to launch browser login")
 	}
@@ -216,7 +219,7 @@ func startWebsocket() (*websocket.Conn, error) {
 
 const authUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb/oauth2/v2.0/authorize"
 
-func launchLogin(nonce string, state string, requireConsent bool) error {
+func launchLogin(nonce string, state string, requireConsent bool, cli bool) error {
 	rqv := url.Values{}
 	rqv.Set("nonce", nonce)
 	rqv.Set("state", state)
@@ -230,5 +233,11 @@ func launchLogin(nonce string, state string, requireConsent bool) error {
 	//if requireConsent {
 	//	rqv.Set("prompt", "consent")
 	//}
-	return browser.OpenURL(authUrl + "?" + rqv.Encode())
+	if cli {
+		fmt.Println("Please open the following URL in your browser:")
+		fmt.Println(authUrl + "?" + rqv.Encode())
+		return nil
+	} else {
+		return browser.OpenURL(authUrl + "?" + rqv.Encode())
+	}
 }

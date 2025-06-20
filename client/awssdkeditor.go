@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/olekukonko/tablewriter"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -79,7 +78,7 @@ func cacheCredentials(frame *Frame) error {
 
 	credsPath := filepath.Join(home, ".aws", "credentials")
 	var credsFile []byte
-	credsFile, err = ioutil.ReadFile(credsPath)
+	credsFile, err = os.ReadFile(credsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			credsFile = []byte{} // Empty file
@@ -116,7 +115,7 @@ func cacheCredentials(frame *Frame) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(credsPath, credsData.Bytes(), 0660)
+	err = os.WriteFile(credsPath, credsData.Bytes(), 0660)
 	if err != nil {
 		return err
 	}
@@ -129,7 +128,6 @@ func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
 	fmt.Println()
 
 	tw := tablewriter.NewWriter(os.Stdout)
-	tw.SetBorder(false)
 
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -143,7 +141,7 @@ func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
 
 	configPath := filepath.Join(home, ".aws", "config")
 	var configFile []byte
-	configFile, err = ioutil.ReadFile(configPath)
+	configFile, err = os.ReadFile(configPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			configFile = []byte{} // Empty file
@@ -159,7 +157,7 @@ func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
 
 	createdRoles := make(map[string]int)
 
-	tw.SetHeader([]string{"Azure AD Application Name", "AWS SDK Profile Name"})
+	tw.Header([]string{"Azure AD Application Name", "AWS SDK Profile Name"})
 
 	for profile, role := range profiles {
 		sectionName := profile
@@ -187,10 +185,10 @@ func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
 			return err
 		}
 
-		tw.Append([]string{role, sectionName})
+		_ = tw.Append([]string{role, sectionName})
 	}
 
-	tw.SetFooter([]string{"Profiles Installed", strconv.Itoa(len(profiles))})
+	tw.Footer([]string{"Profiles Installed", strconv.Itoa(len(profiles))})
 
 	configData := &bytes.Buffer{}
 	_, err = f.WriteTo(configData)
@@ -198,12 +196,15 @@ func setupProfiles(useLongNameFormat bool, profiles map[string]string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(configPath, configData.Bytes(), 0660)
+	err = os.WriteFile(configPath, configData.Bytes(), 0660)
 	if err != nil {
 		return err
 	}
 
-	tw.Render()
+	err = tw.Render()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
