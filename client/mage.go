@@ -5,16 +5,18 @@ package main
 
 import (
 	"archive/zip"
+	"crypto/sha256"
 	"fmt"
-	"github.com/Masterminds/semver"
-	"github.com/briandowns/spinner"
-	"github.com/magefile/mage/sh"
-	"github.com/magefile/mage/target"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/Masterminds/semver"
+	"github.com/briandowns/spinner"
+	"github.com/magefile/mage/sh"
+	"github.com/magefile/mage/target"
 )
 
 var allTargets = [][]string{
@@ -89,7 +91,7 @@ func Build() error {
 	return nil
 }
 
-func Release() error {
+func Release(notes string) error {
 	err := Patch()
 	if err != nil {
 		return err
@@ -98,10 +100,41 @@ func Release() error {
 	if err != nil {
 		return err
 	}
-	err = Sign()
+
+	// Execute a gh release to push the binaries to github
+	fmt.Println("pushing binaries to github")
+	cvs, err := loadVersionInfo()
 	if err != nil {
 		return err
 	}
+	sh.Run("gh", "release", "create", "v"+cvs, "aada_mac_x64.zip", "aada_mac_arm64.zip", "--title", "v"+cvs, "--notes", notes)
+
+	// Get the hashes and output formula changes
+	contents, err := os.Open("aada_mac_x64.zip")
+	if err != nil {
+		return err
+	}
+	defer contents.Close()
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, contents); err != nil {
+		return err
+	}
+	x64Sum := hasher.Sum(nil)
+	contents, err = os.Open("aada_mac_arm64.zip")
+	if err != nil {
+		return err
+	}
+	defer contents.Close()
+	hasher = sha256.New()
+	if _, err := io.Copy(hasher, contents); err != nil {
+		return err
+	}
+	arm64Sum := hasher.Sum(nil)
+
+	fmt.Printf("x64: %x\n", x64Sum)
+	fmt.Printf("arm64: %x\n", arm64Sum)
+	fmt.Println("update the formula with the new hashes")
+
 	return nil
 }
 
@@ -128,7 +161,7 @@ func Package() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("packaging non-mac binaries (use sign for mac binaries)")
+	fmt.Println("packaging binaries")
 	for _, t := range allReleases {
 		// For each release, build a zip file if it doesn't already exist
 		ok, err := target.Glob(t[0], t[1])
