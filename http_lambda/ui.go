@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	_ "embed"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"net/http"
 	"os"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 //go:embed favicon.b64
@@ -77,6 +78,11 @@ func buildConsolePage(links []ConsoleLink) Response {
 	//     <div class="name">Administrator</div>
 	//   </a>
 	// </div>
+
+	// Sort by account number
+	sort.Slice(links, func(i, j int) bool {
+		return links[i].Account < links[j].Account
+	})
 
 	html := ""
 	for _, link := range links {

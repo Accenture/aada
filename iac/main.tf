@@ -36,6 +36,7 @@ provider "aws" {
       Group       = "AABG"
       Purpose     = "AADA"
       Environment = "Production"
+      AIRID       = "87485"
     }
   }
 }
@@ -75,6 +76,7 @@ provider "aws" {
       Group       = "AABG"
       Purpose     = "AADA"
       Environment = "Production"
+      AIRID       = "87485"
     }
   }
 }
@@ -116,6 +118,7 @@ provider "aws" {
       Group       = "AABG"
       Purpose     = "AADA"
       Environment = "Production"
+      AIRID       = "87485"
     }
   }
 }
@@ -152,6 +155,7 @@ provider "aws" {
       Group       = "AABG"
       Purpose     = "AADA"
       Environment = "Production"
+      AIRID       = "87485"
     }
   }
 }

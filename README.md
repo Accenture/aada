@@ -133,6 +133,9 @@ This was written by Eric Hill.  Ping me on Teams and I'll see what I can do to h
 The latest release can always be downloaded from here:
 https://aabg.io/downloads
 
+Release 1.3.0, published Jun 20, 2025 - Added a -cli option so that the 
+tool can be manually used inside a container via command line.
+
 Release 1.1.2, published Jun 19, 2023 - With the recent AWS outage in
 us-east-1, this version lays down the groundwork for a globally highly
 available configuration.  Since state was stored in a DynamoDB table
