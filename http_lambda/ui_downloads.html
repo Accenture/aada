@@ -18,7 +18,13 @@
             flex-direction: column;
             align-items: center;
         }
-        a {
+        code {
+            font-family: 'Roboto Mono', monospace;
+            background: lightgray;
+            border: 0px;
+            border-radius: 4px;
+        }
+        .download {
             margin: 0.25em;
             font-family: 'Roboto Mono', monospace;
             color: #dddddd;
@@ -32,11 +38,11 @@
             width: 20em;
             text-align: center;
         }
-        a:visited {
+        a:visited.download {
             color: #dddddd;
             transition-duration: 1s;
         }
-        a:hover {
+        a:hover.download {
             color: white;
             transition-duration: 1s;
         }
@@ -67,10 +73,15 @@
 </svg>
 <p class="centered">Instructions</p>
 <p>
-    To use AADA, you'll need to download the appropriate binary (below) to your computer and place
-    it in your system PATH.  This is typically <code>/usr/local/bin</code> on Mac or a tools folder
-    on Windows.  If you can open a terminal or command prompt and type <code>aada</code> and it works,
-    the tool is installed successfully.
+    If you are on a Mac using <a href="https://brew.sh">Homebrew</a>, then you can simply:
+    <code>brew tap Accenture/aada</code> followed by <code>brew install aada</code> and then you
+    can run <code>aada -configure</code> to set up your profiles.
+</p>
+<p>
+    If you don't use Homebrew, you'll need to download the appropriate binary (below) to your computer
+    and place it in your system PATH.  This is typically <code>/usr/local/bin</code> on Mac or a tools
+    folder on Windows.  If you can open a terminal or command prompt and type <code>aada</code> and it
+    works, the tool is installed successfully.
 </p>
 <p>
     Start with configuration by running <code>aada -configure</code> and aada will setup
@@ -111,12 +122,12 @@ $ aws --profile role-name-here sts get-caller-identity
 <p class="centered">Latest release is 1.3.1</p>
 <p class="centered">(These links are generated dynamically and expire after 10 minutes.)</p>
 <div id="binariesList">
-    <a href="{AADA_MAC_X64}">aada_mac_x64.zip</a>
-    <a href="{AADA_MAC_ARM64}">aada_mac_arm64.zip</a>
-    <a href="{AADA_WIN_X64}">aada_win_x64.zip</a>
-    <a href="{AADA_WIN_ARM}">aada_win_arm.zip</a>
-    <a href="{AADA_LINUX_X64}">aada_linux_x64.zip</a>
-    <a href="{AADA_LINUX_ARM32}">aada_linux_arm32.zip</a>
-    <a href="{AADA_LINUX_ARM64}">aada_linux_arm64.zip</a>
+    <a class="download" href="{AADA_MAC_X64}">aada_mac_x64.zip</a>
+    <a class="download" href="{AADA_MAC_ARM64}">aada_mac_arm64.zip</a>
+    <a class="download" href="{AADA_WIN_X64}">aada_win_x64.zip</a>
+    <a class="download" href="{AADA_WIN_ARM}">aada_win_arm.zip</a>
+    <a class="download" href="{AADA_LINUX_X64}">aada_linux_x64.zip</a>
+    <a class="download" href="{AADA_LINUX_ARM32}">aada_linux_arm32.zip</a>
+    <a class="download" href="{AADA_LINUX_ARM64}">aada_linux_arm64.zip</a>
 </div>
 </body></html>

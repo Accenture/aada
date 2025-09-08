@@ -36,10 +36,15 @@ data "aws_iam_policy_document" "lambda_policy" {
     resources = ["${module.aada_us_east_1.s3_bucket_arn}/*", "${module.aada_us_west_1.s3_bucket_arn}/*"]
   }
   statement {
-    sid       = "WSSAsyncPush"
-    effect    = "Allow"
-    actions   = ["execute-api:ManageConnections"] // https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-control-access-iam.html
-    resources = [module.aada_us_east_1.ws_api_url, module.aada_us_west_1.ws_api_url]
+    sid     = "WSSAsyncPush"
+    effect  = "Allow"
+    actions = ["execute-api:ManageConnections"] // https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-control-access-iam.html
+    resources = [
+      module.aada_us_east_1.ws_api_url,
+      module.aada_us_west_1.ws_api_url,
+      module.aada_ap_southeast_2.ws_api_url,
+      module.aada_eu_central_1.ws_api_url
+    ]
   }
   statement {
     sid       = "CrossAccountAssumptions"
