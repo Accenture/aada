@@ -107,6 +107,9 @@ func buildConsolePage(links []ConsoleLink) Response {
 //go:embed ui_downloads.html
 var downloadsPage string
 
+//go:embed client_version.info
+var clientVersion string
+
 func buildDownloadsPage() Response {
 	s3svc := s3.NewFromConfig(awsConfig)
 	presigner := s3.NewPresignClient(s3svc)
@@ -136,6 +139,8 @@ func buildDownloadsPage() Response {
 		url, _ := presigner.PresignGetObject(context.Background(), &getObject)
 		body = strings.Replace(body, "{"+strings.ToUpper(key)+"}", url.URL, 1)
 	}
+
+	body = strings.Replace(body, "{__VERSION__}", clientVersion, 1)
 
 	return Response{
 		StatusCode: http.StatusOK,

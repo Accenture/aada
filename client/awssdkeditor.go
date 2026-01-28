@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/go-ini/ini"
-	"github.com/olekukonko/tablewriter"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
+	"gopkg.in/ini.v1"
 )
 
 // Either returns populated credentials, or nil if they don't exist

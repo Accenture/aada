@@ -92,11 +92,7 @@ func Build() error {
 }
 
 func Release(notes string) error {
-	err := Patch()
-	if err != nil {
-		return err
-	}
-	err = Package()
+	err := Package()
 	if err != nil {
 		return err
 	}
