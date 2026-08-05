@@ -8,7 +8,7 @@ resource "aws_s3_object" "ws" {
 resource "aws_lambda_function" "ws" {
   function_name    = "${var.solution_name}-ws"
   role             = var.lambda_execution_role_arn
-  runtime          = "provided.al2"
+  runtime          = "provided.al2023"
   architectures    = ["arm64"]
   handler          = "bootstrap"
   memory_size      = 256
