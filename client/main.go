@@ -4,15 +4,17 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/browser"
 	"github.com/pkg/errors"
-	"log"
-	"net/url"
-	"os"
-	"strings"
-	"time"
 )
 
 //go:embed version.info
@@ -89,6 +91,7 @@ func internal() error {
 	useLongNameFormat := false
 	cliMode := false
 	horizon := time.Now()
+	loginHint := ""
 
 	for i := 1; i < len(os.Args); i++ {
 		switch strings.ToLower(os.Args[i]) {
@@ -132,6 +135,17 @@ func internal() error {
 				frame.Duration = int(t.Seconds())
 			} else if strings.HasPrefix(strings.ToLower(os.Args[i]), "-cli") {
 				cliMode = true
+			} else if strings.HasPrefix(strings.ToLower(os.Args[i]), "-login-hint") {
+				loginHint = os.Args[i][len("-login-hint")+1:]
+				matched, err := regexp.MatchString("[a-z0-9\\\\.]+@[a-z0-9]+\\.[a-z0-9]+", loginHint)
+				if err != nil {
+					fmt.Println("failed to parse login regexp")
+					return nil
+				}
+				if !matched {
+					loginHint = ""
+					// silently continue without a login hint
+				}
 			} else if os.Args[i][0:1] == "-" {
 				fmt.Println("Invalid switch:", os.Args[i])
 				fmt.Println(UsageInfo)
@@ -176,7 +190,7 @@ func internal() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to unpack frame")
 	}
-	err = launchLogin(nonce, frame.Context, frame.Mode == "configuration", cliMode)
+	err = launchLogin(nonce, frame.Context, frame.Mode == "configuration", cliMode, loginHint)
 	if err != nil {
 		return errors.Wrap(err, "failed to launch browser login")
 	}
@@ -219,7 +233,7 @@ func startWebsocket() (*websocket.Conn, error) {
 
 const authUrl = "https://login.microsoftonline.com/e0793d39-0939-496d-b129-198edd916feb/oauth2/v2.0/authorize"
 
-func launchLogin(nonce string, state string, requireConsent bool, cli bool) error {
+func launchLogin(nonce string, state string, requireConsent bool, cli bool, loginHint string) error {
 	rqv := url.Values{}
 	rqv.Set("nonce", nonce)
 	rqv.Set("state", state)
@@ -230,6 +244,9 @@ func launchLogin(nonce string, state string, requireConsent bool, cli bool) erro
 	rqv.Set("response_mode", "query")
 	rqv.Set("scope", "openid profile email")
 	rqv.Set("redirect_uri", "https://aabg.io/authenticator")
+	if loginHint != "" {
+		rqv.Set("login_hint", loginHint)
+	}
 	//if requireConsent {
 	//	rqv.Set("prompt", "consent")
 	//}
