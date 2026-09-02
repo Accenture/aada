@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/browser"
 )
 
-func launchLogin(nonce string, state string, requireConsent bool, cli bool, loginHint string) error {
+func launchLogin(nonce string, state string, requireConsent bool, cli bool, loginHint string, prompt string) error {
 	rqv := url.Values{}
 	rqv.Set("nonce", nonce)
 	rqv.Set("state", state)
@@ -20,7 +20,9 @@ func launchLogin(nonce string, state string, requireConsent bool, cli bool, logi
 	rqv.Set("redirect_uri", "https://aabg.io/authenticator")
 	if loginHint != "" {
 		rqv.Set("login_hint", loginHint)
-		rqv.Set("prompt", "none")
+	}
+	if prompt != "" {
+		rqv.Set("prompt", prompt)
 	}
 	//if requireConsent {
 	//	rqv.Set("prompt", "consent")

@@ -31,6 +31,7 @@ func internal() error {
 	cliMode := false
 	horizon := time.Now()
 	loginHint := ""
+	prompt := ""
 
 	for i := 1; i < len(os.Args); i++ {
 		switch strings.ToLower(os.Args[i]) {
@@ -85,6 +86,8 @@ func internal() error {
 					loginHint = ""
 					// silently continue without a login hint
 				}
+			} else if strings.HasPrefix(strings.ToLower(os.Args[i]), "-prompt") {
+				prompt = os.Args[i][len("-prompt")+1:]
 			} else if os.Args[i][0:1] == "-" {
 				fmt.Println("Invalid switch:", os.Args[i])
 				fmt.Println(UsageInfo)
@@ -129,7 +132,7 @@ func internal() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to unpack frame")
 	}
-	err = launchLogin(nonce, frame.Context, frame.Mode == "configuration", cliMode, loginHint)
+	err = launchLogin(nonce, frame.Context, frame.Mode == "configuration", cliMode, loginHint, prompt)
 	if err != nil {
 		return errors.Wrap(err, "failed to launch browser login")
 	}
