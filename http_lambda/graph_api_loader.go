@@ -1,16 +1,15 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
-	"io/ioutil"
+	"io"
 	"net/http"
-	"net/http/httputil"
+
+	"github.com/pkg/errors"
 )
 
-func loadGraphResultSet(creds *Credentials, query string) (<- chan json.RawMessage, <- chan error) {
+func loadGraphResultSet(creds *Credentials, query string) (<-chan json.RawMessage, <-chan error) {
 	objs := make(chan json.RawMessage, 20)
 	errs := make(chan error)
 
@@ -34,16 +33,11 @@ func loadGraphResultSet(creds *Credentials, query string) (<- chan json.RawMessa
 				return
 			}
 			if rsp.StatusCode != 200 {
-				/// DEBUGGING ONLY
-				wtf, _ := httputil.DumpRequest(req, true)
-				fmt.Println("DIAG REQUEST", base64.RawStdEncoding.EncodeToString(wtf))
-				wtf, _ = httputil.DumpResponse(rsp, true)
-				fmt.Println("DIAG RESPONSE", base64.RawStdEncoding.EncodeToString(wtf))
-
+				fmt.Printf("ERROR graph api %s %s\n", req.URL.Path, rsp.Status)
 				errs <- errors.New(rsp.Status)
 				return
 			}
-			raw, err := ioutil.ReadAll(rsp.Body)
+			raw, err := io.ReadAll(rsp.Body)
 			if err != nil {
 				errs <- errors.Wrap(err, "unable to read response body")
 				return

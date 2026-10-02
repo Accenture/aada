@@ -13,3 +13,7 @@ output "ws_domain_name" {
 output "http_function_url" {
   value = aws_lambda_function_url.http.function_url
 }
+
+output "client_secret_arn" {
+  value = aws_secretsmanager_secret.client_secret.arn
+}

@@ -2,15 +2,17 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type LambdaFunctionHTTPRequest struct {
@@ -46,12 +48,6 @@ type Response struct {
 	IsBase64Encoded bool              `json:"isBase64Encoded"`
 }
 
-/// Interesting query
-//
-//  https://graph.microsoft.com/v1.0/me/transitiveMemberOf?$search="displayName:AABG.CIE.US.NA"
-//  ConsistencyLevel: eventual
-//
-
 type Credentials struct {
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in"`
@@ -67,6 +63,9 @@ var lastResult int
 func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 	rsp, err := internalLambdaHandler(ctx, raw)
 
+	if rsp.Headers == nil {
+		rsp.Headers = make(map[string]string)
+	}
 	rsp.Headers["Cache-Control"] = "private, max-age=3600"
 	rsp.Headers["Content-Security-Policy"] = "default-src 'self' aabg.io *.aabg.io; script-src 'self' 'unsafe-eval' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.googleapis.com fonts.gstatic.com; block-all-mixed-content;"
 	rsp.Headers["Feature-Policy"] = "usb 'none'; geolocation 'none'; microphone 'none'; camera 'none'"
@@ -85,8 +84,6 @@ func lambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
 }
 
 func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, error) {
-	fmt.Println("INFO", string(raw))
-
 	startTime := time.Now()
 	defer func() {
 		endTime := time.Now()
@@ -98,20 +95,16 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 	if err != nil {
 		return Response{
 			StatusCode: 500,
+			Headers:    make(map[string]string),
 		}, err
 	}
 
-	host := in.Headers["X-Forwarded-Host"]
-	if len(host) == 0 {
-		host = in.Headers["X-Forwarded-For"]
-	}
-	if len(host) == 0 {
-		host = in.Context.Request.SourceIp
-	}
+	host := in.Context.Request.SourceIp
 	if shouldThrottle(host) {
 		fmt.Println("THROTTLING", host)
 		return Response{
 			StatusCode: 429,
+			Headers:    make(map[string]string),
 		}, nil
 	}
 
@@ -131,7 +124,7 @@ func internalLambdaHandler(ctx context.Context, raw json.RawMessage) (Response, 
 				Headers: map[string]string{
 					"Content-Type": "application/json",
 				},
-				Body:            "2.3.3",
+				Body:            clientVersion,
 				IsBase64Encoded: false,
 			}, nil
 		case "/favicon.ico":

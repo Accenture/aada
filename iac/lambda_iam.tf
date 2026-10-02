@@ -27,7 +27,12 @@ data "aws_iam_policy_document" "lambda_policy" {
       "kms:Sign",
       "kms:Verify"
     ]
-    resources = ["*"]
+    resources = [
+      aws_kms_key.signatory.arn,
+      aws_kms_replica_key.signatory_us_west_1.arn,
+      aws_kms_replica_key.signatory_eu_central_1.arn,
+      aws_kms_replica_key.signatory_ap_southeast_2.arn,
+    ]
   }
   statement {
     sid       = "DownloadClientBinary"
@@ -51,6 +56,17 @@ data "aws_iam_policy_document" "lambda_policy" {
     effect    = "Allow"
     actions   = ["sts:AssumeRole"]
     resources = ["*"]
+  }
+  statement {
+    sid     = "ReadClientSecret"
+    effect  = "Allow"
+    actions = ["secretsmanager:GetSecretValue"]
+    resources = [
+      module.aada_us_east_1.client_secret_arn,
+      module.aada_us_west_1.client_secret_arn,
+      module.aada_ap_southeast_2.client_secret_arn,
+      module.aada_eu_central_1.client_secret_arn,
+    ]
   }
 }
 

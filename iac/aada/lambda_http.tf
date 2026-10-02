@@ -5,6 +5,17 @@ resource "aws_s3_object" "http" {
   source_hash = filemd5("../http_lambda/http_lambda.zip")
 }
 
+resource "aws_secretsmanager_secret" "client_secret" {
+  name                    = "${var.solution_name}-client-secret"
+  description             = "Azure AD client secret for AADA"
+  recovery_window_in_days = 7
+}
+
+resource "aws_secretsmanager_secret_version" "client_secret" {
+  secret_id     = aws_secretsmanager_secret.client_secret.id
+  secret_string = var.client_secret
+}
+
 resource "aws_lambda_function" "http" {
   function_name    = "${var.solution_name}-http"
   role             = var.lambda_execution_role_arn
@@ -19,11 +30,11 @@ resource "aws_lambda_function" "http" {
 
   environment {
     variables = {
-      CLIENT_ID       = var.client_id
-      CLIENT_SECRET   = var.client_secret
-      WS_CONN_URL     = "https://${aws_apigatewayv2_api.wsapi.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_apigatewayv2_stage.wsapi_stage.name}/@connections"
-      BINARIES_BUCKET = aws_s3_bucket.binaries_bucket.bucket
-      KMS_KEY_ARN     = var.kms_key_arn
+      CLIENT_ID          = var.client_id
+      CLIENT_SECRET_ARN  = aws_secretsmanager_secret.client_secret.arn
+      WS_CONN_URL        = "https://${aws_apigatewayv2_api.wsapi.id}.execute-api.${data.aws_region.current.region}.amazonaws.com/${aws_apigatewayv2_stage.wsapi_stage.name}/@connections"
+      BINARIES_BUCKET    = aws_s3_bucket.binaries_bucket.bucket
+      KMS_KEY_ARN        = var.kms_key_arn
     }
   }
 }

@@ -52,7 +52,7 @@ func sendMessageToClient(ctx context.Context, region string, apiId string, clien
 
 	rsp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Printf("response error %d - %s\n", rsp.StatusCode, rsp.Status)
+		fmt.Printf("response error: %s\n", err.Error())
 		return err
 	}
 	content, _ := io.ReadAll(rsp.Body)

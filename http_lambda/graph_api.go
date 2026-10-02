@@ -30,7 +30,6 @@ func getAccessTokenFromCode(code string) (*Credentials, error) {
 	clientId, _ := os.LookupEnv("CLIENT_ID")
 	rqv.Set("client_id", clientId)
 
-	clientSecret, _ := os.LookupEnv("CLIENT_SECRET")
 	rqv.Set("client_secret", clientSecret)
 
 	req, err := http.NewRequest("POST", tokenUrl, strings.NewReader(rqv.Encode()))

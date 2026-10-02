@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/aws/aws-lambda-go/lambda"
 	"os"
+
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 )
 
 var kmsKeyArn string
-var websocketUrl string
+var clientSecret string
 
 func main() {
 	s, ok := os.LookupEnv("KMS_KEY_ARN")
@@ -16,11 +19,20 @@ func main() {
 	}
 	kmsKeyArn = s
 
-	s, ok = os.LookupEnv("WS_CONN_URL")
+	secretArn, ok := os.LookupEnv("CLIENT_SECRET_ARN")
 	if !ok {
-		fmt.Println("WS_CONN_URL was not provided")
+		fmt.Println("ERROR environment variable CLIENT_SECRET_ARN was not provided")
+	} else {
+		smc := secretsmanager.NewFromConfig(awsConfig)
+		out, err := smc.GetSecretValue(context.Background(), &secretsmanager.GetSecretValueInput{
+			SecretId: &secretArn,
+		})
+		if err != nil {
+			fmt.Println("ERROR fetching client secret from Secrets Manager: ", err.Error())
+		} else if out.SecretString != nil {
+			clientSecret = *out.SecretString
+		}
 	}
-	websocketUrl = s
 
 	lambda.Start(lambdaHandler)
 }
